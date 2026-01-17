@@ -1,8 +1,7 @@
 package com.example.seniorcitizensupport.activity;
 
 import android.app.Dialog;
-import android.content.Intent;
-import android.graphics.Color;
+import android.content.Intent;import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.Editable;
@@ -27,12 +26,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.seniorcitizensupport.R;
 import com.example.seniorcitizensupport.activity.MedicineModel;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-// (Removed unused WriteBatch imports since logic moved to CheckoutActivity)
 
-import java.io.Serializable; // Import added for passing list
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +55,6 @@ public class MedicalActivity extends AppCompatActivity {
 
         fStore = FirebaseFirestore.getInstance();
 
-        // Initialize Views
         recyclerView = findViewById(R.id.recycler_medicines);
         searchBar = findViewById(R.id.search_medicine);
         layoutCheckout = findViewById(R.id.layout_checkout);
@@ -75,7 +71,6 @@ public class MedicalActivity extends AppCompatActivity {
 
         loadMedicinesFromFirestore();
 
-        // Search functionality
         searchBar.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -87,11 +82,19 @@ public class MedicalActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {}
         });
 
-        // UPDATED: Clicking this now goes to the Review Page instead of placing order directly
         btnCheckout.setOnClickListener(v -> goToCheckoutPage());
     }
 
-    // --- HELPER METHOD FOR DYNAMIC IMAGES ---
+    // This new method clears the cart when you return from the checkout screen.
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (cartList != null) {
+            cartList.clear();
+        }
+        updateCheckoutUI();
+    }
+
     private int getMedicineImageResource(String medicineName) {
         if (medicineName == null) return R.drawable.paracetamol;
         String formattedName = medicineName.toLowerCase().replaceAll("\\s+", "").replaceAll("[^a-z0-9]", "");
@@ -99,7 +102,6 @@ public class MedicalActivity extends AppCompatActivity {
         return (resId != 0) ? resId : R.drawable.paracetamol;
     }
 
-    // --- POPUP LOGIC (Details) ---
     private void showMedicineDetails(MedicineModel model) {
         Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -119,7 +121,7 @@ public class MedicalActivity extends AppCompatActivity {
         imgMed.setImageResource(getMedicineImageResource(model.getName()));
 
         String strength = model.getStrength();
-        if (!strength.isEmpty()) {
+        if (strength != null && !strength.isEmpty()) {
             name.setText(model.getName() + " (" + strength + ")");
         } else {
             name.setText(model.getName());
@@ -143,7 +145,6 @@ public class MedicalActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // --- LOADING DATA ---
     private void loadMedicinesFromFirestore() {
         fStore.collection("medicines")
                 .get()
@@ -179,8 +180,6 @@ public class MedicalActivity extends AppCompatActivity {
                                         double vPrice = 0.0;
                                         if (variant.get("price") instanceof Number) {
                                             vPrice = ((Number) variant.get("price")).doubleValue();
-                                        } else if (variant.get("price") instanceof String) {
-                                            try { vPrice = Double.parseDouble((String) variant.get("price")); } catch (Exception e){}
                                         }
                                         List<Map<String, Object>> singleVariantList = new ArrayList<>();
                                         singleVariantList.add(variant);
@@ -189,8 +188,7 @@ public class MedicalActivity extends AppCompatActivity {
                                 } else {
                                     double price = 0.0;
                                     if (doc.contains("price") && doc.get("price") != null) {
-                                        Number num = doc.getDouble("price");
-                                        if (num != null) price = num.doubleValue();
+                                        price = doc.getDouble("price");
                                     }
                                     allMedicines.add(new MedicineModel(name, price, desc, stock, available, null, docId));
                                 }
@@ -199,7 +197,7 @@ public class MedicalActivity extends AppCompatActivity {
                         filter("");
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(MedicalActivity.this, "Error loading", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(MedicalActivity.this, "Error loading medicines", Toast.LENGTH_SHORT).show());
     }
 
     private void filter(String text) {
@@ -211,7 +209,7 @@ public class MedicalActivity extends AppCompatActivity {
             for (MedicineModel d : allMedicines) {
                 String fullName = d.getName();
                 String strength = d.getStrength();
-                if (!strength.isEmpty()) {
+                if (strength != null && !strength.isEmpty()) {
                     fullName += " " + strength;
                 }
                 if (fullName.toLowerCase().contains(searchText)) {
@@ -240,24 +238,15 @@ public class MedicalActivity extends AppCompatActivity {
         }
     }
 
-    // *** REPLACED: Navigation to Checkout Page ***
     private void goToCheckoutPage() {
         if (cartList.isEmpty()) {
             Toast.makeText(this, "Your cart is empty", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Navigate to the CheckoutActivity
         Intent intent = new Intent(MedicalActivity.this, CheckoutActivity.class);
-        // We cast cartList to Serializable so it can be passed.
-        // Ensure MedicineModel implements Serializable!
         intent.putExtra("cartList", (Serializable) cartList);
         startActivity(intent);
-
-        // Optional: Clear cart here if you don't want them to go back and add more
-        // usually we keep it until final confirmation, but for simplicity:
-        // cartList.clear();
-        // updateCheckoutUI();
     }
 
     // --- ADAPTER ---
@@ -282,7 +271,7 @@ public class MedicalActivity extends AppCompatActivity {
             holder.imgMedicine.setImageResource(getMedicineImageResource(model.getName()));
 
             String strength = model.getStrength();
-            if (!strength.isEmpty()) {
+            if (strength != null && !strength.isEmpty()) {
                 holder.name.setText(model.getName() + " (" + strength + ")");
             } else {
                 holder.name.setText(model.getName());
@@ -291,8 +280,9 @@ public class MedicalActivity extends AppCompatActivity {
             double displayPrice = model.getDisplayPrice();
             holder.price.setText("₹" + String.format("%.2f", displayPrice));
 
+            // *** THE BUG IS FIXED HERE. THIS LOGIC NOW RUNS FOR ALL ITEMS. ***
             if (model.isAvailable() && model.getStock() > 0) {
-                holder.desc.setText(model.getDescription() + " (In Stock: " + model.getStock() + ")");
+                holder.desc.setText(model.getDescription());
                 holder.desc.setTextColor(Color.parseColor("#78909C"));
 
                 holder.btnAdd.setEnabled(true);
@@ -315,7 +305,7 @@ public class MedicalActivity extends AppCompatActivity {
         }
 
         @Override
-        public int getItemCount() { return list.size(); }
+        public int getItemCount() { return (list != null) ? list.size() : 0; }
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView name, desc, price;

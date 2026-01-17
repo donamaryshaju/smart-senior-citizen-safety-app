@@ -1,24 +1,34 @@
 package com.example.seniorcitizensupport.activity;
 
-import android.util.Log;
-import androidx.annotation.Keep; // --- IMPORT @Keep ---
 import java.io.Serializable;
 
-@Keep // --- ADDED: Prevents ProGuard from removing this class in release builds ---
+/**
+ * Represents a single grocery item with all its properties.
+ * This class is used for displaying items from the store and for the shopping cart.
+ * Implements Serializable to be passed between activities.
+ */
 public class GroceryItem implements Serializable {
+
+    // --- All Fields Needed ---
     private String name;
     private double price;
+    private String unit;
     private String description;
     private int stock;
     private boolean available;
-    private String unit;
+    private String documentId; // Optional: can store the item's original ID
 
-    // Empty constructor required for Firestore's automatic data mapping
+    /**
+     * No-argument constructor required for Firestore and deserialization.
+     */
     public GroceryItem() {
-        // This is used by Firestore. You can add a log to see when it's called.
-        Log.d("GroceryItem", "Empty constructor called by Firestore");
+        // Empty constructor
     }
 
+    /**
+     * A comprehensive constructor to create a new grocery item with all its details.
+     * This is used when loading items from the Firestore 'groceries' collection.
+     */
     public GroceryItem(String name, double price, String description, int stock, boolean available, String unit) {
         this.name = name;
         this.price = price;
@@ -28,38 +38,26 @@ public class GroceryItem implements Serializable {
         this.unit = unit;
     }
 
-    // --- GETTERS ---
-    // Added null checks to prevent crashes
-    public String getName() {
-        return name != null ? name : "Unknown Item";
-    }
+    // --- GETTERS and SETTERS ---
 
-    public double getPrice() {
-        return price;
-    }
-
-    public String getDescription() {
-        return description != null ? description : "";
-    }
-
-    public int getStock() {
-        return stock;
-    }
-
-    public boolean isAvailable() {
-        return available;
-    }
-
-    public String getUnit() {
-        return unit != null ? unit : "";
-    }
-
-    // --- SETTERS ---
-    // These are required for Firebase to map data from the database back into the object.
+    public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
-    public void setDescription(String description) { this.description = description; }
-    public void setStock(int stock) { this.stock = stock; }
-    public void setAvailable(boolean available) { this.available = available; }
+
+    public String getUnit() { return unit; }
     public void setUnit(String unit) { this.unit = unit; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public int getStock() { return stock; }
+    public void setStock(int stock) { this.stock = stock; }
+
+    public boolean isAvailable() { return available; }
+    public void setAvailable(boolean available) { this.available = available; }
+
+    public String getDocumentId() { return documentId; }
+    public void setDocumentId(String documentId) { this.documentId = documentId; }
 }

@@ -1,75 +1,63 @@
-// Correct File Path: app/src/main/java/com/example/seniorcitizensupport/model/RequestModel.java
-
 package com.example.seniorcitizensupport.model;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.Exclude;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Represents a request made by a user. This can be a medical request,
- * transport request, or a grocery order. This class is designed to be
- * directly used with Firestore's toObject() method.
- */
-public class RequestModel {
-
-    // --- Fields that map directly to your Firestore documents ---
-    private String type;        // e.g., "Medical", "Transport", "Grocery"
-    private String description; // For non-grocery requests
-    private String priority;    // e.g., "Normal", "High"
-    private String location;    // For non-grocery requests
-    private String userId;      // The UID of the user who made the request
-    private String status;      // e.g., "Pending", "Accepted", "Completed"
-    private String volunteerId; // UID of the volunteer who accepted the request
-
-    // --- Fields specific to Grocery/Medicine orders ---
-    private String totalAmount;
+public class RequestModel {    // Fields that map to Firestore documents
+    private String type;
+    private String description;
+    private String priority;
+    private String location;
+    private String userId;
+    private String status;
+    private String volunteerId;
+    private Timestamp timestamp;
+    private double totalAmount;
     private List<Map<String, Object>> items;
 
-    // --- Fields that are used locally in the app but NOT saved to Firestore ---
+    // --- Field used locally in the app but NOT saved to Firestore ---
     @Exclude
     private String documentId;
-    @Exclude
-    private String tempCollectionName;
 
-    // IMPORTANT: A public no-argument constructor is REQUIRED for Firestore's toObject() method.
     public RequestModel() {
-        // Default constructor
+        // Required public no-argument constructor
     }
 
-    // --- GETTERS ---
-    // These allow other classes to read the data from this object.
+    // --- GETTERS and SETTERS for all fields ---
 
     public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+
     public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
     public String getPriority() { return priority; }
+    public void setPriority(String priority) { this.priority = priority; }
+
     public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
     public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+
     public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
     public String getVolunteerId() { return volunteerId; }
-    public String getTotalAmount() { return totalAmount; }
+    public void setVolunteerId(String volunteerId) { this.volunteerId = volunteerId; }
+
+    public Timestamp getTimestamp() { return timestamp; }
+    public void setTimestamp(Timestamp timestamp) { this.timestamp = timestamp; }
+
+    public double getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
+
     public List<Map<String, Object>> getItems() { return items; }
+    public void setItems(List<Map<String, Object>> items) { this.items = items; }
 
     @Exclude
     public String getDocumentId() { return documentId; }
-
-    @Exclude
-    public String getTempCollectionName() { return tempCollectionName; }
-
-
-    // --- SETTERS ---
-    // These allow other classes to set or change the data in this object.
-
-    public void setType(String type) { this.type = type; }
-    public void setDescription(String description) { this.description = description; }
-    public void setPriority(String priority) { this.priority = priority; }
-    public void setLocation(String location) { this.location = location; }
-    public void setUserId(String userId) { this.userId = userId; }
-    public void setStatus(String status) { this.status = status; }
-    public void setVolunteerId(String volunteerId) { this.volunteerId = volunteerId; }
-    public void setTotalAmount(String totalAmount) { this.totalAmount = totalAmount; }
-    public void setItems(List<Map<String, Object>> items) { this.items = items; }
-
     public void setDocumentId(String documentId) { this.documentId = documentId; }
-    public void setTempCollectionName(String tempCollectionName) { this.tempCollectionName = tempCollectionName; }
 }

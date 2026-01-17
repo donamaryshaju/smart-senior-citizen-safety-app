@@ -1,6 +1,7 @@
 package com.example.seniorcitizensupport.activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,8 +29,8 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class VolunteerDashboardActivity extends AppCompatActivity {
@@ -45,7 +46,7 @@ public class VolunteerDashboardActivity extends AppCompatActivity {
     private CardView btnMedical, btnGrocery, btnTransport, btnHomecare;
     private TextView txtVolunteerName;
     private TextView txtBottomSheetTitle;
-    private BottomSheetBehavior<CardView> bottomSheetBehavior;
+    private Button btnLogout;
 
     private ListenerRegistration firestoreListener;
 
@@ -54,11 +55,10 @@ public class VolunteerDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_volunteer_dashboard);
 
-        // 1. Initialize Firebase
         fStore = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
-        // 2. Initialize UI components
+        // -------- UI References --------
         btnMedical = findViewById(R.id.card_medical);
         btnGrocery = findViewById(R.id.card_grocery);
         btnTransport = findViewById(R.id.card_transport);
@@ -66,213 +66,207 @@ public class VolunteerDashboardActivity extends AppCompatActivity {
         txtVolunteerName = findViewById(R.id.text_volunteer_name);
         txtBottomSheetTitle = findViewById(R.id.bottom_sheet_title);
         recyclerView = findViewById(R.id.recycler_requests);
-        CardView bottomSheetCard = findViewById(R.id.bottom_sheet_requests);
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetCard);
+        btnLogout = findViewById(R.id.btn_logout);
 
-        // 3. Setup RecyclerView
+        // -------- Recycler Setup --------
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         requestList = new ArrayList<>();
-        adapter = new RequestAdapter(requestList, this);
+        adapter = new RequestAdapter(requestList, this, fStore, mAuth);
         recyclerView.setAdapter(adapter);
 
-        // 4. Set Click Listeners
+        // -------- Button Actions --------
         btnMedical.setOnClickListener(v -> loadRequests("Medical Assistance"));
         btnGrocery.setOnClickListener(v -> loadRequests("Grocery"));
         btnTransport.setOnClickListener(v -> loadRequests("Transport"));
         btnHomecare.setOnClickListener(v -> loadRequests("Homecare"));
 
-        // 5. Load initial data
+        btnLogout.setOnClickListener(v -> {
+
+            //  Stop Firestore listener first
+            if (firestoreListener != null) {
+                firestoreListener.remove();
+                firestoreListener = null;
+            }
+
+            //  Sign out safely
+            FirebaseAuth.getInstance().signOut();
+
+            Intent intent = new Intent(VolunteerDashboardActivity.this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        });
+
+
+        // -------- Load Initial Data --------
         loadVolunteerInfo();
-        loadRequests("Medical Assistance"); // Default to medical
+        loadRequests("Medical Assistance");
     }
 
+    // ---------------- LOAD VOLUNTEER NAME ----------------
     private void loadVolunteerInfo() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            fStore.collection("users").document(currentUser.getUid()).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            String name = documentSnapshot.getString("fName");
-                            if (name != null && !name.isEmpty()) {
-                                txtVolunteerName.setText("Hello, " + name);
-                            } else {
-                                txtVolunteerName.setText("Hello, Volunteer");
-                            }
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Failed to load volunteer name", e);
-                        txtVolunteerName.setText("Hello, Volunteer");
-                    });
-        }
+        if (currentUser == null) return;
+
+        fStore.collection("users").document(currentUser.getUid()).get()
+                .addOnSuccessListener(documentSnapshot -> {
+
+                    String name = documentSnapshot.getString("fName");
+
+                    if (name == null || name.trim().isEmpty()) {
+                        name = documentSnapshot.getString("fullName");
+                    }
+
+                    if (name == null || name.trim().isEmpty()) {
+                        name = "Volunteer";
+                    }
+
+                    txtVolunteerName.setText("Hello, " + name);
+                })
+                .addOnFailureListener(e -> txtVolunteerName.setText("Hello, Volunteer"));
     }
 
+    // ---------------- LOAD REQUESTS ----------------
     private void loadRequests(String category) {
+
         txtBottomSheetTitle.setText("Showing: " + category + " Requests");
 
-        if (firestoreListener != null) {
-            firestoreListener.remove();
-        }
+        if (firestoreListener != null) firestoreListener.remove();
 
-        Log.d(TAG, "Loading requests for category: " + category);
+        final String collectionToQuery =
+                "Grocery".equalsIgnoreCase(category) ? "orders" : "requests";
 
-        Query query;
-        String collectionName;
-
-        if ("Grocery".equalsIgnoreCase(category)) {
-            collectionName = "orders";
-            // *** THE FIX: We remove the status filter to show ALL grocery orders ***
-            query = fStore.collection(collectionName);
-        } else {
-            collectionName = "requests";
-            // We keep the status filter for other requests because it's working correctly
-            query = fStore.collection(collectionName)
-                    .whereEqualTo("type", category)
-                    .whereIn("status", Arrays.asList("Pending", "pending", "requested"));
-        }
-
-        Log.d(TAG, "Querying Collection: '" + collectionName + "' for type: '" + category + "'");
+        Query query = fStore.collection(collectionToQuery)
+                .whereEqualTo("type", category)
+                .whereEqualTo("status", "Pending");
 
         firestoreListener = query.addSnapshotListener((value, error) -> {
             if (error != null) {
-                Log.e(TAG, "Firestore listen failed.", error);
-                Toast.makeText(VolunteerDashboardActivity.this, "Error loading requests. Check Logcat.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Failed to load requests", Toast.LENGTH_SHORT).show();
                 requestList.clear();
                 adapter.notifyDataSetChanged();
                 return;
             }
 
             if (value != null) {
-                Log.d(TAG, "Query successful. Found " + value.size() + " docs in '" + collectionName + "'");
                 requestList.clear();
-
                 for (DocumentSnapshot doc : value.getDocuments()) {
                     try {
                         RequestModel req = doc.toObject(RequestModel.class);
                         if (req != null) {
                             req.setDocumentId(doc.getId());
-                            req.setTempCollectionName(collectionName);
-
-                            if ("orders".equals(collectionName)) {
-                                req.setType("Grocery");
-                            }
                             requestList.add(req);
                         }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Failed to parse document: " + doc.getId(), e);
-                    }
+                    } catch (Exception ignored) {}
                 }
                 adapter.notifyDataSetChanged();
-
-                if (requestList.isEmpty()) {
-                    Toast.makeText(VolunteerDashboardActivity.this, "No pending " + category + " requests found.", Toast.LENGTH_SHORT).show();
-                }
             }
         });
     }
 
-    // --- INNER CLASS: Smart RequestAdapter (NO CHANGES NEEDED HERE) ---
-    class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.ViewHolder> {
-        private List<RequestModel> list;
-        private Context context;
-        private FirebaseFirestore fStore = FirebaseFirestore.getInstance();
-        private FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    // ---------------- ADAPTER ----------------
+    static class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.ViewHolder> {
 
-        public RequestAdapter(List<RequestModel> list, Context context) {
+        private final List<RequestModel> list;
+        private final Context context;
+        private final FirebaseFirestore fStore;
+        private final FirebaseAuth mAuth;
+
+        public RequestAdapter(List<RequestModel> list, Context context,
+                              FirebaseFirestore firestore, FirebaseAuth auth) {
             this.list = list;
             this.context = context;
+            this.fStore = firestore;
+            this.mAuth = auth;
         }
 
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_request_card, parent, false);
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_request_card, parent, false);
             return new ViewHolder(view);
         }
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            final RequestModel req = list.get(position);
 
-            String type = req.getType() != null ? req.getType() : "Request";
+            final RequestModel req = list.get(position);
+            if (req == null) return;
+
+            String type = req.getType() != null ? req.getType() : "N/A";
             holder.txtType.setText(type);
 
-            final boolean isGrocery = "Grocery".equalsIgnoreCase(type);
+            String location = req.getLocation() != null
+                    ? req.getLocation()
+                    : "No location provided";
+            holder.txtLocation.setText(location);
 
-            // --- SMART DISPLAY LOGIC ---
-            if (isGrocery) {
-                // This block handles GROCERY orders from the 'orders' collection
+            // ✅ SHOW FULL DESCRIPTION FOR BOTH MEDICAL & GROCERY
+            String description = req.getDescription();
+
+            if (description != null && !description.trim().isEmpty()) {
+                holder.txtDesc.setText(description);
+            } else if ("Grocery".equalsIgnoreCase(type)) {
                 List<Map<String, Object>> items = req.getItems();
-                if (items != null && !items.isEmpty()) {
-                    String firstItemName = "Grocery Items";
-                    try { firstItemName = String.valueOf(items.get(0).get("name")); } catch (Exception e) {/*ignore*/}
-
-                    if (items.size() > 1) {
-                        holder.txtDesc.setText(firstItemName + " + " + (items.size() - 1) + " others");
-                    } else {
-                        holder.txtDesc.setText(firstItemName);
-                    }
-                } else if (req.getDescription() != null && !req.getDescription().isEmpty()) {
-                    // Fallback to description if items array is missing
-                    holder.txtDesc.setText(req.getDescription());
-                } else {
-                    holder.txtDesc.setText("Grocery Order Details Unavailable");
-                }
-                String amount = req.getTotalAmount();
-                holder.txtLocation.setText(amount != null && !amount.equals("0") ? "Total: " + amount : "Price Pending");
-
+                holder.txtDesc.setText(
+                        (items != null ? items.size() : 0) + " items in order"
+                );
             } else {
-                // This block handles ALL OTHER requests (Medical, Transport, etc.) from the 'requests' collection
-                holder.txtDesc.setText(req.getDescription() != null ? req.getDescription() : "No details provided");
-                holder.txtLocation.setText(req.getLocation() != null ? req.getLocation() : "No location provided");
+                holder.txtDesc.setText("No details provided");
             }
 
-            // --- COMMON LOGIC FOR ALL REQUESTS ---
             String priority = req.getPriority() != null ? req.getPriority() : "Normal";
-            holder.txtPriority.setText(priority.toUpperCase() + " PRIORITY");
-            if ("High".equalsIgnoreCase(priority)) {
-                holder.txtPriority.setTextColor(ContextCompat.getColor(context, android.R.color.holo_red_dark));
+            holder.txtPriority.setText(priority.toUpperCase(Locale.US) + " PRIORITY");
+            holder.txtPriority.setTextColor(
+                    ContextCompat.getColor(context,
+                            "High".equalsIgnoreCase(priority)
+                                    ? android.R.color.holo_red_dark
+                                    : android.R.color.holo_green_dark)
+            );
+
+            String userId = req.getUserId();
+            if (userId != null && !userId.isEmpty()) {
+                holder.txtName.setText("Loading...");
+                fStore.collection("users").document(userId).get()
+                        .addOnSuccessListener(ds -> {
+                            String name = ds.getString("fName");
+                            holder.txtName.setText(
+                                    name != null ? "Senior: " + name : "Senior: Name not found"
+                            );
+                        });
             } else {
-                holder.txtPriority.setTextColor(ContextCompat.getColor(context, android.R.color.holo_green_dark));
+                holder.txtName.setText("Senior: Unknown");
             }
 
-            // Fetch and display senior's name
-            if (req.getUserId() != null && !req.getUserId().isEmpty()) {
-                fStore.collection("users").document(req.getUserId()).get().addOnSuccessListener(ds -> {
-                    if (ds.exists()) {
-                        String name = ds.getString("fName");
-                        holder.txtName.setText(name != null ? "Senior: " + name : "Senior: Unknown");
-                    } else {
-                        holder.txtName.setText("Senior: User not found");
-                    }
-                });
-            } else {
-                holder.txtName.setText("Senior: ID missing");
-            }
-
-            // Accept Button Logic
             holder.btnAccept.setOnClickListener(v -> {
                 FirebaseUser currentUser = mAuth.getCurrentUser();
-                if (currentUser != null) {
-                    String collection = req.getTempCollectionName();
-                    if (collection == null || collection.isEmpty()) {
-                        collection = isGrocery ? "orders" : "requests";
-                    }
+                if (currentUser != null && req.getDocumentId() != null) {
 
-                    fStore.collection(collection).document(req.getDocumentId())
-                            .update("status", "Accepted", "volunteerId", currentUser.getUid())
-                            .addOnSuccessListener(a -> Toast.makeText(context, "Request Accepted!", Toast.LENGTH_SHORT).show())
-                            .addOnFailureListener(e -> Toast.makeText(context, "Failed to accept: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    final String collectionToUpdate =
+                            "Grocery".equalsIgnoreCase(req.getType())
+                                    ? "orders"
+                                    : "requests";
+
+                    fStore.collection(collectionToUpdate)
+                            .document(req.getDocumentId())
+                            .update("status", "Accepted",
+                                    "volunteerId", currentUser.getUid())
+                            .addOnSuccessListener(a ->
+                                    Toast.makeText(context, "Request Accepted!", Toast.LENGTH_SHORT).show())
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(context, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                 }
             });
         }
 
         @Override
         public int getItemCount() {
-            return list.size();
+            return list != null ? list.size() : 0;
         }
 
-        class ViewHolder extends RecyclerView.ViewHolder {
+        static class ViewHolder extends RecyclerView.ViewHolder {
+
             TextView txtType, txtDesc, txtPriority, txtName, txtLocation;
             Button btnAccept;
 

@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.seniorcitizensupport.R;
+import com.example.seniorcitizensupport.activity.GroceryItem;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -105,7 +106,7 @@ public class GroceryActivity extends AppCompatActivity {
         Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        // Ensure this layout exists, or create dialog_grocery_details.xml
+        // It is better to create a new layout R.layout.dialog_grocery_details, but this works.
         dialog.setContentView(R.layout.dialog_medicine_details);
 
         if (dialog.getWindow() != null) {
@@ -141,7 +142,7 @@ public class GroceryActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // --- LOAD DATA ---
+    // --- LOAD DATA (CORRECTED) ---
     private void loadGroceriesFromFirestore() {
         fStore.collection("groceries")
                 .get()
@@ -171,10 +172,7 @@ public class GroceryActivity extends AppCompatActivity {
                                     if (s != null) stock = s.intValue();
                                 }
 
-                                boolean available = true;
-                                if (doc.contains("available") && doc.get("available") != null) {
-                                    available = doc.getBoolean("available");
-                                }
+                                boolean available = doc.exists() && doc.getBoolean("available") != null ? doc.getBoolean("available") : false;
 
                                 if (name != null) {
                                     allGroceries.add(new GroceryItem(name, price, desc, stock, available, unit));
@@ -183,7 +181,8 @@ public class GroceryActivity extends AppCompatActivity {
                                 Log.e("GroceryError", "Error parsing item: " + e.getMessage());
                             }
                         }
-                        filter("");
+                        // This line is now correctly placed AFTER the loop finishes.
+                        filter(""); // Populate the list for the first time
                     } else {
                         Toast.makeText(GroceryActivity.this, "No groceries found in database", Toast.LENGTH_SHORT).show();
                     }
@@ -203,7 +202,9 @@ public class GroceryActivity extends AppCompatActivity {
                 }
             }
         }
-        adapter.notifyDataSetChanged();
+        if(adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
     }
 
     private void addToCart(GroceryItem item) {
@@ -230,7 +231,6 @@ public class GroceryActivity extends AppCompatActivity {
             return;
         }
 
-        // --- FIXED: Point to GroceryCheckoutActivity, NOT CheckoutActivity ---
         Intent intent = new Intent(GroceryActivity.this, GroceryCheckoutActivity.class);
         intent.putExtra("cartList", (Serializable) cartList);
         startActivity(intent);
@@ -290,7 +290,7 @@ public class GroceryActivity extends AppCompatActivity {
         }
 
         @Override
-        public int getItemCount() { return list.size(); }
+        public int getItemCount() { return list != null ? list.size() : 0; }
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView txtName, txtDesc, txtStock;
