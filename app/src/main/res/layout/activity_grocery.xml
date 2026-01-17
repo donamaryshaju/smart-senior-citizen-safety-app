@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
+
+    <!-- 1. HEADER & SEARCH (Pinned to Top) -->
+    <LinearLayout
+        android:id="@+id/header_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#FFFFFF"
+        android:paddingBottom="10dp"
+        android:elevation="4dp"
+        android:layout_alignParentTop="true">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Order Groceries"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#37474F"
+            android:padding="16dp"/>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginHorizontal="16dp"
+            app:cardCornerRadius="25dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#E1F5FE">
+
+            <EditText
+                android:id="@+id/search_grocery"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:hint="Search for groceries..."
+                android:paddingStart="20dp"
+                android:drawableStart="@android:drawable/ic_menu_search"
+                android:drawablePadding="10dp"
+                android:textColor="#37474F"
+                android:textSize="16sp"/>
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
+
+    <!-- 2. CHECKOUT BAR (Pinned to Bottom) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/layout_checkout"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="35dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="#2E7D32"
+        android:visibility="gone">
+
+        <!-- The click listener is usually set on this LinearLayout (btn_checkout) in Java -->
+        <LinearLayout
+            android:id="@+id/btn_checkout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="?attr/selectableItemBackground"
+            android:paddingHorizontal="20dp">
+
+            <!-- Total Item Count and Cost -->
+            <TextView
+                android:id="@+id/text_cart_count"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="0 Items | Total: ₹0.00"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="15sp"/>
+
+            <!-- "View Cart" Actual Button -->
+            <!-- Note: clickable=false ensures the click is handled by the parent layout -->
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="View Cart"
+                android:textColor="#2E7D32"
+                android:backgroundTint="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                app:cornerRadius="20dp"
+                android:clickable="false"
+                android:minHeight="40dp"
+                android:paddingHorizontal="15dp"/>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- 3. LIST OF GROCERIES (Fills the middle space) -->
+    <!-- layout_below header, layout_above checkout bar -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_grocery"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/header_container"
+        android:layout_above="@id/layout_checkout"
+        android:clipToPadding="false"
+        android:paddingTop="10dp"
+        android:paddingBottom="20dp"/>
+
+</RelativeLayout>

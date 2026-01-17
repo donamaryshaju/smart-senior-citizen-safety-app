@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="20dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Image of the Medicine -->
+        <!-- Ensure 'paracetamol.png' exists in res/drawable/ and filename is all lowercase -->
+        <ImageView
+            android:id="@+id/dialog_med_image"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/paracetamol"
+            android:scaleType="fitCenter"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:id="@+id/dialog_med_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Medicine Name"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#37474F"
+            android:layout_gravity="center_horizontal"/>
+
+        <TextView
+            android:id="@+id/dialog_med_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Price: ₹0.00"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#43A047"
+            android:layout_marginTop="4dp"
+            android:layout_gravity="center_horizontal"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#ECEFF1"
+            android:layout_marginVertical="12dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_info_details"
+                app:tint="#78909C"/>
+
+            <TextView
+                android:id="@+id/dialog_strip_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Strip Info"
+                android:textSize="16sp"
+                android:textColor="#546E7A"
+                android:layout_marginStart="12dp"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/dialog_calc_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cost per unit: ₹0.00"
+            android:textSize="14sp"
+            android:textColor="#78909C"
+            android:background="#E1F5FE"
+            android:padding="10dp"
+            android:layout_marginTop="16dp"
+            android:gravity="center"/>
+
+        <Button
+            android:id="@+id/btn_dialog_close"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Close"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#37474F"
+            android:layout_marginTop="20dp"/>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

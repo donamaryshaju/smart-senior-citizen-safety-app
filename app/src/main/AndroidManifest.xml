@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- CRITICAL FIX: Added Internet Permission so Firebase works -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.SeniorCitizenSupport"
+        tools:targetApi="31">
+
+        <!-- LAUNCHER ACTIVITY (First screen to open) -->
+        <activity
+            android:name=".activity.WelcomeActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- MAIN DASHBOARD (For Senior Citizens) -->
+        <activity
+            android:name=".activity.MainActivity"
+            android:exported="false" />
+
+        <!-- AUTHENTICATION ACTIVITIES -->
+        <activity
+            android:name=".activity.LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.RegisterActivity"
+            android:exported="false" />
+
+        <!-- DASHBOARDS -->
+        <activity
+            android:name=".activity.VolunteerDashboardActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activity.AdminDashboardActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activity.FamilyDashboardActivity"
+            android:exported="false" />
+
+        <!-- CRITICAL FIX: Registered the new Medical Activity -->
+        <activity
+            android:name=".activity.MedicalActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.CheckoutActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activity.ProfileActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activity.MyRequestsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activity.GroceryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activity.GroceryCheckoutActivity"
+            android:exported="false" />
+
+
+
+
+
+
+
+
+
+
+
+
+    </application>
+
+</manifest>

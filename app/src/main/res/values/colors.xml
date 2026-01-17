@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_200">#BB86FC</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="teal_700">#018786</color>
+
+    <!-- NEW MODERN THEME COLORS (Light Blue & Green) -->
+    <color name="light_blue_primary">#4FC3F7</color> <!-- Soft Light Blue (Main Brand Color) -->
+    <color name="light_blue_bg">#E1F5FE</color>      <!-- Very Light Blue (Backgrounds) -->
+
+    <color name="money_green">#43A047</color>         <!-- Fresh Green (For Price/Checkout) -->
+    <color name="money_green_light">#C8E6C9</color>   <!-- Lighter Green for subtext -->
+
+    <color name="dark_text">#37474F</color>           <!-- Soft Dark Grey (Easier on senior eyes than pure black) -->
+    <color name="sub_text">#78909C</color>            <!-- Muted Grey (For descriptions) -->
+    <color name="error_red">#E57373</color>           <!-- Soft Red (For Out of Stock) -->
+    <color name="bg_grey">#F8F9FA</color>             <!-- Main Page Background -->
+</resources>

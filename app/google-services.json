@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "371091629686",
+    "project_id": "seniorcitizensupport",
+    "storage_bucket": "seniorcitizensupport.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:371091629686:android:d4fa3a1a19de5c3b12a157",
+        "android_client_info": {
+          "package_name": "com.example.seniorcitizensupport"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYt9m7j1lUVT2Beqh8TkidgUyvke7zD-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

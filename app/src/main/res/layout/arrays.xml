@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="user_roles">
+        <item>Senior Citizen</item>
+        <item>Volunteer</item>
+        <item>Family Member</item>
+        <item>Admin</item>
+    </string-array>
+</resources>
