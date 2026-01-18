@@ -76,6 +76,12 @@
             android:name=".activity.GroceryCheckoutActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".activity.ManageMedicinesActivity"
+            android:exported="false" />
+
+
+
 
 
 

@@ -18,7 +18,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
     private TextView txtWelcome, txtVolunteerCount, txtSeniorCount;
 
-    // --- FIX: Updated CardView variables ---
     private CardView cardManageMedicines, cardManageGroceries, cardManageTransport, cardManageHomeCare;
 
     private ImageView iconProfile, iconNotifications;
@@ -40,11 +39,10 @@ public class AdminDashboardActivity extends AppCompatActivity {
         iconProfile = findViewById(R.id.icon_profile);
         iconNotifications = findViewById(R.id.icon_notifications);
 
-        // --- FIX: Updated findViewById calls for the CardViews ---
         cardManageMedicines = findViewById(R.id.card_manage_medicines);
         cardManageGroceries = findViewById(R.id.card_manage_groceries);
-        cardManageTransport = findViewById(R.id.card_manage_transport); // Corrected from card_manage_users
-        cardManageHomeCare = findViewById(R.id.card_manage_homecare);   // Corrected from card_view_orders
+        cardManageTransport = findViewById(R.id.card_manage_transport);
+        cardManageHomeCare = findViewById(R.id.card_manage_homecare);
 
         // --- Set Click Listeners ---
 
@@ -62,8 +60,14 @@ public class AdminDashboardActivity extends AppCompatActivity {
             finish();
         });
 
-        // --- FIX: Updated CardView Click Listeners ---
-        cardManageMedicines.setOnClickListener(v -> Toast.makeText(this, "Manage Medicines Clicked", Toast.LENGTH_SHORT).show());
+        // --- DYNAMIC CODE ADDED ---
+        // When the card is clicked, open the new ManageMedicinesActivity
+        cardManageMedicines.setOnClickListener(v -> {
+            Intent intent = new Intent(AdminDashboardActivity.this, ManageMedicinesActivity.class);
+            startActivity(intent);
+        });
+
+        // Listeners for other cards (you can update these later)
         cardManageGroceries.setOnClickListener(v -> Toast.makeText(this, "Manage Groceries Clicked", Toast.LENGTH_SHORT).show());
         cardManageTransport.setOnClickListener(v -> Toast.makeText(this, "Manage Transport Clicked", Toast.LENGTH_SHORT).show());
         cardManageHomeCare.setOnClickListener(v -> Toast.makeText(this, "Home Care Clicked", Toast.LENGTH_SHORT).show());
