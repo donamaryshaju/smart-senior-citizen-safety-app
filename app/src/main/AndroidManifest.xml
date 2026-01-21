@@ -80,6 +80,14 @@
             android:name=".activity.ManageMedicinesActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".activity.AddEditMedicineActivity"
+            android:exported="false" />
+
+
+
+
+
 
 
 
