@@ -15,6 +15,12 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        buildConfigField(
+            "String",
+            "FIREBASE_API_KEY",
+            "\"${project.properties["FIREBASE_API_KEY"]}\""
+        )
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
