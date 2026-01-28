@@ -1,4 +1,3 @@
-
 package com.example.seniorcitizensupport.activity;
 
 import android.content.Intent;
@@ -6,42 +5,34 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;import android.widget.RadioGroup;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.seniorcitizensupport.BaseActivity;
+import com.example.seniorcitizensupport.Constants;
 import com.example.seniorcitizensupport.R;
+import com.example.seniorcitizensupport.model.RequestModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.card.MaterialCardView;
-import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     // UI Components
     private TextView txtWelcome, txtLastStatus;
     private TextView btnSOS;
     private Button btnViewRequests;
-
-    // RESTORED: cardGrocery added back here
     private MaterialCardView cardMedical, cardTransport, cardHomeCare, cardGrocery;
     private View btnLogout;
 
     // Bottom Navigation View
     private BottomNavigationView bottomNav;
 
-    // Firebase
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore fStore;
     private String userId;
 
     @Override
@@ -49,10 +40,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 1. Initialize Firebase
-        mAuth = FirebaseAuth.getInstance();
-        fStore = FirebaseFirestore.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        FirebaseUser currentUser = auth.getCurrentUser();
 
         if (currentUser == null) {
             startActivity(new Intent(MainActivity.this, LoginActivity.class));
@@ -62,14 +50,51 @@ public class MainActivity extends AppCompatActivity {
 
         userId = currentUser.getUid();
 
-        // 2. Initialize Views
+        // Initialize Views
         initializeViews();
 
-        // 3. Load User Data
+        // Load User Data
         loadUserProfile();
 
-        // 4. Set Listeners
+        // Set Listeners
+        setupListeners();
+    }
 
+    private void initializeViews() {
+        txtWelcome = findViewById(R.id.text_welcome_senior);
+        txtLastStatus = findViewById(R.id.text_last_status);
+        btnSOS = findViewById(R.id.btn_sos);
+        btnViewRequests = findViewById(R.id.btn_view_requests);
+
+        cardMedical = findViewById(R.id.card_medical);
+        cardGrocery = findViewById(R.id.card_grocery);
+        cardTransport = findViewById(R.id.card_transport);
+        cardHomeCare = findViewById(R.id.card_homecare);
+
+        btnLogout = findViewById(R.id.btn_logout_senior);
+        bottomNav = findViewById(R.id.bottom_nav);
+    }
+
+    private void loadUserProfile() {
+        firestore.collection(Constants.KEY_COLLECTION_USERS).document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String name = documentSnapshot.getString(Constants.KEY_NAME);
+                        if (name == null)
+                            name = documentSnapshot.getString("fullName"); // Fallback
+                        if (name == null)
+                            name = documentSnapshot.getString("fName"); // Fallback
+
+                        if (name != null && !name.isEmpty()) {
+                            txtWelcome.setText("Hello, " + name);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> showToast("Failed to load profile"));
+    }
+
+    private void setupListeners() {
         // --- SOS BUTTON ---
         if (btnSOS != null) {
             btnSOS.setOnClickListener(v -> {
@@ -77,7 +102,8 @@ public class MainActivity extends AppCompatActivity {
                         .setTitle("EMERGENCY SOS")
                         .setMessage("Send Emergency Alert to everyone?")
                         .setPositiveButton("YES, SEND HELP", (dialog, which) -> {
-                            fetchAddressAndCreateRequest("SOS", "Emergency", "High", "Emergency Alert triggered!");
+                            fetchAddressAndCreateRequest(Constants.TYPE_SOS, "Emergency", "High",
+                                    "Emergency Alert triggered!");
                         })
                         .setNegativeButton("Cancel", null)
                         .show();
@@ -85,43 +111,27 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // --- DIRECT ACTION BUTTONS ---
-        if (cardMedical != null) {
-            cardMedical.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, MedicalActivity.class);
-                startActivity(intent);
-            });
-        }
-
-        // RESTORED: Grocery Click Listener
-        if (cardGrocery != null) {
-            cardGrocery.setOnClickListener(v -> {
-                // This opens your new list of groceries
-                Intent intent = new Intent(MainActivity.this, GroceryActivity.class);
-                startActivity(intent);
-            });
-        }
-
-        if (cardTransport != null) cardTransport.setOnClickListener(v -> showDetailedDialog("Transportation"));
-        if (cardHomeCare != null) cardHomeCare.setOnClickListener(v -> showDetailedDialog("Home Care"));
+        if (cardMedical != null)
+            cardMedical.setOnClickListener(v -> showDetailedDialog(Constants.TYPE_MEDICAL));
+        if (cardGrocery != null)
+            cardGrocery.setOnClickListener(v -> showDetailedDialog(Constants.TYPE_GROCERY));
+        if (cardTransport != null)
+            cardTransport.setOnClickListener(v -> showDetailedDialog(Constants.TYPE_TRANSPORT));
+        if (cardHomeCare != null)
+            cardHomeCare.setOnClickListener(v -> showDetailedDialog(Constants.TYPE_HOMECARE));
 
         // --- VIEW REQUEST HISTORY BUTTON ---
         if (btnViewRequests != null) {
             btnViewRequests.setOnClickListener(v -> {
-                try {
-                    Toast.makeText(MainActivity.this, "Opening History...", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(MainActivity.this, MyRequestsActivity.class);
-                    startActivity(intent);
-                } catch (Exception e) {
-                    Toast.makeText(MainActivity.this, "Error launching page: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    e.printStackTrace();
-                }
+                Intent intent = new Intent(MainActivity.this, MyRequestsActivity.class);
+                startActivity(intent);
             });
         }
 
         // --- Logout ---
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {
-                mAuth.signOut();
+                auth.signOut();
                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
@@ -133,49 +143,15 @@ public class MainActivity extends AppCompatActivity {
         if (bottomNav != null) {
             bottomNav.setOnItemSelectedListener(item -> {
                 int id = item.getItemId();
-                if (id == R.id.nav_home) return true;
+                if (id == R.id.nav_home)
+                    return true;
                 if (id == R.id.nav_profile) {
-                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                    startActivity(intent);
+                    startActivity(new Intent(MainActivity.this, ProfileActivity.class));
                     return true;
                 }
                 return false;
             });
         }
-    }
-
-    private void initializeViews() {
-        txtWelcome = findViewById(R.id.text_welcome_senior);
-        txtLastStatus = findViewById(R.id.text_last_status);
-        btnSOS = findViewById(R.id.btn_sos);
-        btnViewRequests = findViewById(R.id.btn_view_requests);
-
-        cardMedical = findViewById(R.id.card_medical);
-
-        // RESTORED: Finding the view by ID
-        cardGrocery = findViewById(R.id.card_grocery);
-
-        cardTransport = findViewById(R.id.card_transport);
-        cardHomeCare = findViewById(R.id.card_homecare);
-
-        btnLogout = findViewById(R.id.btn_logout_senior);
-        bottomNav = findViewById(R.id.bottom_nav);
-    }
-
-    private void loadUserProfile() {
-        DocumentReference docRef = fStore.collection("users").document(userId);
-        docRef.get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                String name = documentSnapshot.getString("fName");
-                if (name == null) name = documentSnapshot.getString("fullName");
-
-                if (name != null && !name.isEmpty()) {
-                    txtWelcome.setText("Hello, " + name);
-                }
-            }
-        }).addOnFailureListener(e -> {
-            Toast.makeText(MainActivity.this, "Failed to load profile", Toast.LENGTH_SHORT).show();
-        });
     }
 
     private void showDetailedDialog(String categoryType) {
@@ -193,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnSubmit = view.findViewById(R.id.btn_confirm_send);
         View btnClose = view.findViewById(R.id.btn_close_dialog);
 
+        TextView specificHelpTitle = view.findViewById(R.id.text_specific_help_title);
         RadioGroup radioGroup = view.findViewById(R.id.radio_group_options);
         RadioButton rb1 = view.findViewById(R.id.rb_doctor);
         RadioButton rb2 = view.findViewById(R.id.rb_pharmacy);
@@ -200,52 +177,58 @@ public class MainActivity extends AppCompatActivity {
 
         title.setText(categoryType + " Request");
 
-        if (categoryType.contains("Transport")) {
+        specificHelpTitle.setVisibility(View.VISIBLE);
+        radioGroup.setVisibility(View.VISIBLE);
+
+        if (categoryType.equals(Constants.TYPE_TRANSPORT)) {
             rb1.setText("Regular Car (I can walk)");
             rb2.setText("Wheelchair Accessible Van");
             rb3.setText("Non-Emergency Ambulance");
             inputNote.setHint("Where do you need to go?");
-        } else if (categoryType.contains("Home")) {
+        } else if (categoryType.equals(Constants.TYPE_HOMECARE)) {
             rb1.setText("House Cleaning");
             rb2.setText("Cooking Help");
             rb3.setText("Companionship / Chat");
             inputNote.setHint("Describe what help you need...");
-        } else {
+        } else if (categoryType.equals(Constants.TYPE_GROCERY)) {
+            rb1.setText("Buy Specific List");
+            rb2.setText("Essentials (Milk, Bread, etc.)");
+            rb3.setText("Fruits & Vegetables only");
+            inputNote.setHint("Please type your list or add details");
+        } else { // Default case for "Medical"
             rb1.setText("Doctor Consultation");
-            rb2.setText("Buy Medicine / Pharmacy");
-            rb3.setText("Hospital Visit / Transport");
+            rb2.setText("Buy Medicine from Pharmacy");
+            rb3.setText("Hospital Visit (Transport)");
             inputNote.setHint("Describe symptoms or list medicines...");
         }
 
         btnClose.setOnClickListener(v -> dialog.dismiss());
 
         btnSubmit.setOnClickListener(v -> {
-            String specificNeed = "";
+            String note = inputNote.getText().toString().trim();
             int selectedId = radioGroup.getCheckedRadioButtonId();
 
-            if (selectedId != -1) {
-                RadioButton selectedRb = view.findViewById(selectedId);
-                specificNeed = selectedRb.getText().toString();
-            } else {
-                specificNeed = "General Request";
-            }
-
-            String note = inputNote.getText().toString().trim();
-
-            if (categoryType.contains("Transport") && note.isEmpty()) {
-                inputNote.setError("Please enter where you need to go");
+            if (selectedId == -1 && note.isEmpty()) {
+                showToast("Please select an option or add details");
                 return;
             }
 
-            if (note.isEmpty()) {
-                note = "No additional details.";
+            String specificNeed = "General Request";
+            if (selectedId != -1) {
+                RadioButton selectedRb = view.findViewById(selectedId);
+                specificNeed = selectedRb.getText().toString();
             }
 
-            String finalDescription = "Specific: " + specificNeed + "\nNote: " + note;
+            String finalDescription;
+            if (note.isEmpty()) {
+                finalDescription = "Request: " + specificNeed;
+            } else {
+                finalDescription = "Request: " + specificNeed + "\nDetails: " + note;
+            }
+
             String priority = specificNeed.contains("Ambulance") ? "High" : "Normal";
 
             fetchAddressAndCreateRequest(categoryType, "Pending", priority, finalDescription);
-
             dialog.dismiss();
         });
 
@@ -253,15 +236,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchAddressAndCreateRequest(String type, String status, String priority, String description) {
-        fStore.collection("users").document(userId).get()
+        firestore.collection(Constants.KEY_COLLECTION_USERS).document(userId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     String address = "Address not provided";
-                    if (documentSnapshot.exists()) {
-                        if (documentSnapshot.contains("address")) {
-                            address = documentSnapshot.getString("address");
-                        } else if (documentSnapshot.contains("location")) {
-                            address = documentSnapshot.getString("location");
-                        }
+                    if (documentSnapshot.exists() && documentSnapshot.getString("address") != null) {
+                        address = documentSnapshot.getString("address");
                     }
                     createRequestWithLocation(type, status, priority, description, address);
                 })
@@ -270,23 +249,22 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void createRequestWithLocation(String type, String status, String priority, String description, String location) {
-        Map<String, Object> request = new HashMap<>();
-        request.put("userId", userId);
-        request.put("type", type);
-        request.put("status", status);
-        request.put("priority", priority);
-        request.put("description", description);
-        request.put("timestamp", FieldValue.serverTimestamp());
-        request.put("location", location);
+    private void createRequestWithLocation(String type, String status, String priority, String description,
+            String location) {
+        RequestModel request = new RequestModel();
+        request.setUserId(userId);
+        request.setType(type);
+        request.setStatus(status);
+        request.setPriority(priority);
+        request.setDescription(description);
+        request.setTimestamp(Timestamp.now());
+        request.setLocation(location);
 
-        fStore.collection("requests").add(request)
+        firestore.collection(Constants.KEY_COLLECTION_REQUESTS).add(request)
                 .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(MainActivity.this, "Request Sent Successfully.", Toast.LENGTH_SHORT).show();
+                    showToast("Request Sent Successfully.");
                     txtLastStatus.setText("Last Request: " + type + " (Pending)");
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+                .addOnFailureListener(e -> showToast("Error: " + e.getMessage()));
     }
 }

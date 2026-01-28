@@ -11,31 +11,26 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.seniorcitizensupport.BaseActivity;
+import com.example.seniorcitizensupport.Constants;
 import com.example.seniorcitizensupport.R;
-// *** FIX 1: Import the correct RequestModel class from your 'model' package ***
 import com.example.seniorcitizensupport.model.RequestModel;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MyRequestsActivity extends AppCompatActivity {
+public class MyRequestsActivity extends BaseActivity {
 
     private RecyclerView recyclerView;
     private MyRequestAdapter adapter;
-    // *** FIX 2: Use the imported RequestModel directly ***
     private List<RequestModel> requestList;
-    private FirebaseFirestore fStore;
-    private FirebaseAuth mAuth;
     private String currentUserId;
 
     @Override
@@ -43,42 +38,36 @@ public class MyRequestsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_requests);
 
-        // 1. Initialize Views
+        // Initialize Views
         recyclerView = findViewById(R.id.recycler_my_requests);
 
         if (recyclerView == null) {
-            Toast.makeText(this, "Error: RecyclerView ID not found!", Toast.LENGTH_LONG).show();
+            showToast("Error: RecyclerView ID not found!");
             return;
         }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         requestList = new ArrayList<>();
-        // The adapter will now use the corrected list
         adapter = new MyRequestAdapter(requestList);
         recyclerView.setAdapter(adapter);
 
-        // 2. Initialize Firebase
-        fStore = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
-
-        if (mAuth.getCurrentUser() != null) {
-            currentUserId = mAuth.getCurrentUser().getUid();
+        if (auth.getCurrentUser() != null) {
+            currentUserId = auth.getCurrentUser().getUid();
             loadMyRequests();
         } else {
-            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
+            showToast("Please login first");
             finish();
         }
     }
 
     private void loadMyRequests() {
-        // This query correctly fetches documents from the 'requests' collection for the current user.
-        fStore.collection("requests")
+        firestore.collection(Constants.KEY_COLLECTION_REQUESTS)
                 .whereEqualTo("userId", currentUserId)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
                         if (error != null) {
-                            Toast.makeText(MyRequestsActivity.this, "Error loading data", Toast.LENGTH_SHORT).show();
+                            showToast("Error loading data");
                             Log.e("FirestoreError", error.getMessage());
                             return;
                         }
@@ -86,7 +75,6 @@ public class MyRequestsActivity extends AppCompatActivity {
                         if (value != null) {
                             requestList.clear();
                             for (DocumentSnapshot doc : value.getDocuments()) {
-                                // *** FIX 3: Convert the Firestore document to the correct RequestModel class ***
                                 RequestModel req = doc.toObject(RequestModel.class);
                                 if (req != null) {
                                     requestList.add(req);
@@ -95,7 +83,7 @@ public class MyRequestsActivity extends AppCompatActivity {
                             adapter.notifyDataSetChanged();
 
                             if (requestList.isEmpty()) {
-                                Toast.makeText(MyRequestsActivity.this, "No requests found.", Toast.LENGTH_SHORT).show();
+                                showToast("No requests found.");
                             }
                         }
                     }
@@ -104,7 +92,6 @@ public class MyRequestsActivity extends AppCompatActivity {
 
     // --- INTERNAL ADAPTER CLASS ---
     private class MyRequestAdapter extends RecyclerView.Adapter<MyRequestAdapter.ViewHolder> {
-        // *** FIX 4: The adapter's internal list must also use the correct RequestModel ***
         private List<RequestModel> list;
 
         public MyRequestAdapter(List<RequestModel> list) {
@@ -120,12 +107,12 @@ public class MyRequestsActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            // The 'req' object is now of the correct RequestModel type
             RequestModel req = list.get(position);
 
-            // Make sure your RequestModel class has these getter methods
-            if (holder.txtType != null) holder.txtType.setText(req.getType());
-            if (holder.txtDesc != null) holder.txtDesc.setText(req.getDescription());
+            if (holder.txtType != null)
+                holder.txtType.setText(req.getType());
+            if (holder.txtDesc != null)
+                holder.txtDesc.setText(req.getDescription());
 
             if (holder.txtPriority != null) {
                 String status = req.getStatus();
@@ -134,13 +121,15 @@ public class MyRequestsActivity extends AppCompatActivity {
                 if ("Accepted".equals(status)) {
                     holder.txtPriority.setTextColor(0xFF2E7D32); // Green
                 } else {
-                    holder.txtPriority.setTextColor(0xFFEF6C00); // Orange for "Pending"
+                    holder.txtPriority.setTextColor(0xFFEF6C00); // Orange
                 }
             }
 
             // Hide UI elements not relevant for the user viewing their own requests
-            if (holder.btnAccept != null) holder.btnAccept.setVisibility(View.GONE);
-            if (holder.txtName != null) holder.txtName.setVisibility(View.GONE);
+            if (holder.btnAccept != null)
+                holder.btnAccept.setVisibility(View.GONE);
+            if (holder.txtName != null)
+                holder.txtName.setVisibility(View.GONE);
         }
 
         @Override

@@ -4,8 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:cardCornerRadius="16dp"
-    app:cardElevation="8dp"
-    android:background="@android:color/white">
+    app:cardElevation="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,35 +17,37 @@
             android:layout_height="wrap_content"
             android:background="#E3F2FD"
             android:gravity="center_vertical"
-            android:padding="16dp"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="16dp">
 
             <ImageView
+                android:id="@+id/btn_close_dialog"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
-                app:tint="#1565C0"
-                android:id="@+id/btn_close_dialog"/>
+                app:tint="#1565C0" />
 
             <TextView
                 android:id="@+id/dialog_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Medical Request"
-                android:textSize="18sp"
-                android:textStyle="bold"
+                android:layout_marginStart="16dp"
+                android:text="Service Request"
                 android:textColor="#1565C0"
-                android:layout_marginStart="16dp"/>
+                android:textSize="18sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
+        <!-- Main Content Area -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="525dp"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="20dp">
 
             <!-- 2. SELECTION BUTTONS (Replaces Dropdown) -->
             <TextView
+                android:id="@+id/text_specific_help_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
@@ -68,7 +69,7 @@
                     android:background="@drawable/edit_text_bg"
                     android:buttonTint="#1565C0"
                     android:padding="10dp"
-                    android:text="Doctor Consultation" />
+                    android:text="Option 1" />
 
                 <RadioButton
                     android:id="@+id/rb_pharmacy"
@@ -78,7 +79,7 @@
                     android:background="@drawable/edit_text_bg"
                     android:buttonTint="#1565C0"
                     android:padding="10dp"
-                    android:text="Buy Medicine / Pharmacy" />
+                    android:text="Option 2" />
 
                 <RadioButton
                     android:id="@+id/rb_hospital"
@@ -88,12 +89,12 @@
                     android:background="@drawable/edit_text_bg"
                     android:buttonTint="#1565C0"
                     android:padding="10dp"
-                    android:text="Hospital Visit / Transport" />
+                    android:text="Option 3" />
             </RadioGroup>
 
             <!-- 3. DESCRIPTION INPUT -->
-
             <TextView
+                android:id="@+id/text_description_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -108,7 +109,8 @@
                 android:layout_height="100dp"
                 android:background="@drawable/edit_text_bg"
                 android:gravity="top|start"
-                android:hint="e.g. I have fever and dizziness."
+                android:hint="Add details here..."
+                android:inputType="textMultiLine"
                 android:padding="12dp"
                 android:textSize="16sp" />
 

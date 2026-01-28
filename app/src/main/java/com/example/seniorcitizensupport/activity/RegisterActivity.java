@@ -11,27 +11,14 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
+import com.example.seniorcitizensupport.BaseActivity;
+import com.example.seniorcitizensupport.Constants;
 import com.example.seniorcitizensupport.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
+import com.example.seniorcitizensupport.model.User;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-public class RegisterActivity extends AppCompatActivity {
+public class RegisterActivity extends BaseActivity {
 
     private static final String TAG = "RegisterActivity";
 
@@ -40,11 +27,7 @@ public class RegisterActivity extends AppCompatActivity {
     private Spinner spinnerUserType;
     private Button buttonRegister;
     private TextView textViewLogin;
-    private ProgressBar progressBar;
-
-    // Firebase
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore mStore;
+    private ProgressBar progressBar; // Kept for layout compatibility, but BaseActivity dialog is better
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,11 +35,6 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         initializeViews();
-
-        mAuth = FirebaseAuth.getInstance();
-        mStore = FirebaseFirestore.getInstance();
-
-        // This method now sets up the spinner without using arrays.xml
         setupUserRoleSpinner();
 
         buttonRegister.setOnClickListener(v -> registerUser());
@@ -77,21 +55,16 @@ public class RegisterActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progress_bar_register);
     }
 
-    /**
-     * Sets up the Spinner by creating the list of roles directly in the Java code,
-     * removing the need for an arrays.xml file.
-     */
     private void setupUserRoleSpinner() {
-        // Create the list of roles directly here
-        String[] userRoles = new String[]{"Senior Citizen", "Volunteer", "Family Member", "Admin"};
+        String[] userRoles = new String[] {
+                Constants.ROLE_SENIOR,
+                Constants.ROLE_VOLUNTEER,
+                Constants.ROLE_FAMILY,
+                Constants.ROLE_ADMIN
+        };
 
-        // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, userRoles);
-
-        // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        // Apply the adapter to the spinner
         spinnerUserType.setAdapter(adapter);
     }
 
@@ -101,7 +74,6 @@ public class RegisterActivity extends AppCompatActivity {
         String password = editTextPassword.getText().toString().trim();
         String confirmPassword = editTextConfirmPassword.getText().toString().trim();
 
-        // --- Input Validation ---
         if (TextUtils.isEmpty(fullName)) {
             editTextFullName.setError("Full name is required.");
             editTextFullName.requestFocus();
@@ -125,48 +97,52 @@ public class RegisterActivity extends AppCompatActivity {
 
         String userType = spinnerUserType.getSelectedItem().toString();
 
-        progressBar.setVisibility(View.VISIBLE);
+        showProgressDialog("Registering...");
 
-        mAuth.createUserWithEmailAndPassword(email, password)
+        auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                        FirebaseUser firebaseUser = auth.getCurrentUser();
                         String userId = firebaseUser.getUid();
 
-                        DocumentReference docRef = mStore.collection("users").document(userId);
-                        Map<String, Object> user = new HashMap<>();
-                        user.put("fullName", fullName);
-                        user.put("email", email);
-                        user.put("userType", userType);
+                        User user = new User();
+                        user.setId(userId);
+                        user.setName(fullName);
+                        user.setEmail(email);
+                        user.setRole(userType);
 
-                        docRef.set(user).addOnSuccessListener(aVoid -> {
-                            progressBar.setVisibility(View.GONE);
-                            Toast.makeText(RegisterActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
+                        firestore.collection(Constants.KEY_COLLECTION_USERS)
+                                .document(userId)
+                                .set(user)
+                                .addOnSuccessListener(aVoid -> {
+                                    hideProgressDialog();
+                                    showToast("Registration Successful!");
 
-                            Intent intent;
-                            if (userType.equals("Volunteer")) {
-                                intent = new Intent(RegisterActivity.this, VolunteerDashboardActivity.class);
-                            } else if (userType.equals("Admin")) {
-                                intent = new Intent(RegisterActivity.this, AdminDashboardActivity.class);
-                            } else if (userType.equals("Family Member")) {
-                                intent = new Intent(RegisterActivity.this, FamilyDashboardActivity.class);
-                            } else {
-                                // Default to Senior Citizen / Main Activity
-                                intent = new Intent(RegisterActivity.this, MainActivity.class);
-                            }
+                                    Intent intent;
+                                    if (userType.equals(Constants.ROLE_VOLUNTEER)) {
+                                        intent = new Intent(RegisterActivity.this, VolunteerDashboardActivity.class);
+                                    } else if (userType.equals(Constants.ROLE_ADMIN)) {
+                                        intent = new Intent(RegisterActivity.this, AdminDashboardActivity.class);
+                                    } else if (userType.equals(Constants.ROLE_FAMILY)) {
+                                        intent = new Intent(RegisterActivity.this, FamilyDashboardActivity.class);
+                                    } else {
+                                        intent = new Intent(RegisterActivity.this, MainActivity.class);
+                                    }
 
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                            finish();
-                        }).addOnFailureListener(e -> {
-                            progressBar.setVisibility(View.GONE);
-                            Log.e(TAG, "Error creating Firestore document", e);
-                            Toast.makeText(RegisterActivity.this, "Error! Could not save user data.", Toast.LENGTH_SHORT).show();
-                        });
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    startActivity(intent);
+                                    finish();
+                                })
+                                .addOnFailureListener(e -> {
+                                    hideProgressDialog();
+                                    Log.e(TAG, "Error creating Firestore document", e);
+                                    showToast("Error! Could not save user data: " + e.getMessage());
+                                });
                     } else {
-                        progressBar.setVisibility(View.GONE);
+                        hideProgressDialog();
                         Log.e(TAG, "Firebase Auth registration failed", task.getException());
-                        Toast.makeText(RegisterActivity.this, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        showToast("Registration Failed: "
+                                + (task.getException() != null ? task.getException().getMessage() : "Unknown error"));
                     }
                 });
     }

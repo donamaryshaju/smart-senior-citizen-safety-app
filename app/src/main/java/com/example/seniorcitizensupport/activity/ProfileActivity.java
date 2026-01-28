@@ -2,39 +2,39 @@ package com.example.seniorcitizensupport.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.seniorcitizensupport.BaseActivity;
+import com.example.seniorcitizensupport.Constants;
 import com.example.seniorcitizensupport.R;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends BaseActivity {
 
     private EditText mFullName, mEmail, mPhone, mAddress;
     private Button mSaveBtn, mLogoutBtn;
-
-    private FirebaseAuth fAuth;
-    private FirebaseFirestore fStore;
     private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+        if (auth.getCurrentUser() == null) {
+            showToast("User not logged in");
+            finish();
+            return;
+        }
+
+        userId = auth.getCurrentUser().getUid();
 
         // Initialize Views
         mFullName = findViewById(R.id.profile_fullname);
@@ -44,17 +44,6 @@ public class ProfileActivity extends AppCompatActivity {
         mSaveBtn = findViewById(R.id.profile_save_btn);
         mLogoutBtn = findViewById(R.id.profile_logout_btn);
 
-        fAuth = FirebaseAuth.getInstance();
-        fStore = FirebaseFirestore.getInstance();
-
-        if (fAuth.getCurrentUser() == null) {
-            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-
-        userId = fAuth.getCurrentUser().getUid();
-
         // 1. Load existing data
         loadUserProfile();
 
@@ -63,7 +52,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         // 3. Logout logic
         mLogoutBtn.setOnClickListener(v -> {
-            FirebaseAuth.getInstance().signOut();
+            auth.signOut();
             Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
@@ -72,83 +61,78 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void loadUserProfile() {
-        DocumentReference docRef = fStore.collection("users").document(userId);
-        docRef.get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
+        firestore.collection(Constants.KEY_COLLECTION_USERS).document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // --- ROBUST NAME LOADING ---
+                        String loadedName = documentSnapshot.getString(Constants.KEY_NAME);
+                        if (loadedName == null)
+                            loadedName = documentSnapshot.getString("fullName");
+                        if (loadedName == null)
+                            loadedName = documentSnapshot.getString("fName");
 
-                // --- ROBUST NAME LOADING ---
-                String loadedName = documentSnapshot.getString("fName");
-                if (loadedName == null) loadedName = documentSnapshot.getString("fullName");
-                if (loadedName == null) loadedName = documentSnapshot.getString("Name");
+                        if (loadedName != null) {
+                            mFullName.setText(loadedName);
+                        }
 
-                if (loadedName != null) {
-                    mFullName.setText(loadedName);
-                }
+                        // Set Email
+                        String email = documentSnapshot.getString(Constants.KEY_EMAIL);
+                        if (email != null) {
+                            mEmail.setText(email);
+                        }
 
-                // Set Email
-                if (documentSnapshot.contains("email")) {
-                    mEmail.setText(documentSnapshot.getString("email"));
-                }
+                        // Set Phone
+                        String phone = documentSnapshot.getString(Constants.KEY_PHONE);
+                        if (phone != null) {
+                            mPhone.setText(phone);
+                        }
 
-                // Set Phone
-                if (documentSnapshot.contains("phone")) {
-                    mPhone.setText(documentSnapshot.getString("phone"));
-                }
-
-                // Set Address
-                if (documentSnapshot.contains("address")) {
-                    mAddress.setText(documentSnapshot.getString("address"));
-                } else if (documentSnapshot.contains("location")) {
-                    mAddress.setText(documentSnapshot.getString("location"));
-                }
-            } else {
-                Toast.makeText(ProfileActivity.this, "Profile not found", Toast.LENGTH_SHORT).show();
-            }
-        }).addOnFailureListener(e -> Toast.makeText(ProfileActivity.this, "Error fetching data", Toast.LENGTH_SHORT).show());
+                        // Set Address
+                        String address = documentSnapshot.getString("address");
+                        if (address == null)
+                            address = documentSnapshot.getString("location");
+                        if (address != null) {
+                            mAddress.setText(address);
+                        }
+                    } else {
+                        showToast("Profile not found");
+                    }
+                })
+                .addOnFailureListener(e -> showToast("Error fetching data"));
     }
 
     private void saveProfileChanges() {
-        // Use .trim() to remove extra spaces
         String name = mFullName.getText().toString().trim();
         String phone = mPhone.getText().toString().trim();
         String address = mAddress.getText().toString().trim();
 
         if (name.isEmpty() || phone.isEmpty() || address.isEmpty()) {
-            Toast.makeText(this, "Name, Phone and Address cannot be empty", Toast.LENGTH_SHORT).show();
+            showToast("Name, Phone and Address cannot be empty");
             return;
         }
 
         mSaveBtn.setEnabled(false);
         mSaveBtn.setText("Saving...");
 
-        DocumentReference docRef = fStore.collection("users").document(userId);
-
         Map<String, Object> userMap = new HashMap<>();
-
-        // --- CRITICAL FIX: SAVE BOTH KEYS ---
-        // This ensures compatibility with whatever key VolunteerDashboard is looking for
-        userMap.put("fName", name);
-        userMap.put("fullName", name);
-        // ------------------------------------
-
-        userMap.put("phone", phone);
+        userMap.put(Constants.KEY_NAME, name);
+        userMap.put("fullName", name); // Compatibility
+        userMap.put("fName", name); // Compatibility
+        userMap.put(Constants.KEY_PHONE, phone);
         userMap.put("address", address);
 
-        // Merge options ensures we don't delete email or other fields
-        docRef.set(userMap, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                Toast.makeText(ProfileActivity.this, "Profile Saved Successfully", Toast.LENGTH_SHORT).show();
-                mSaveBtn.setEnabled(true);
-                mSaveBtn.setText("SAVE CHANGES");
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(ProfileActivity.this, "Failed to update: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                mSaveBtn.setEnabled(true);
-                mSaveBtn.setText("SAVE CHANGES");
-            }
-        });
+        firestore.collection(Constants.KEY_COLLECTION_USERS).document(userId)
+                .set(userMap, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    showToast("Profile Saved Successfully");
+                    mSaveBtn.setEnabled(true);
+                    mSaveBtn.setText("SAVE CHANGES");
+                })
+                .addOnFailureListener(e -> {
+                    showToast("Failed to update: " + e.getMessage());
+                    mSaveBtn.setEnabled(true);
+                    mSaveBtn.setText("SAVE CHANGES");
+                });
     }
 }

@@ -7,24 +7,20 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.seniorcitizensupport.BaseActivity;
+import com.example.seniorcitizensupport.Constants;
 import com.example.seniorcitizensupport.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends BaseActivity {
 
     private static final String TAG = "LoginActivity";
 
@@ -34,29 +30,17 @@ public class LoginActivity extends AppCompatActivity {
     private Button buttonLogin;
     private TextView textViewRegisterLink;
 
-    // Firebase
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore fStore;
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            // If user is already logged in, check their role first.
-            checkUserRole(currentUser.getUid());
-        }
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
 
-        // Initialize Firebase Auth & Firestore
-        mAuth = FirebaseAuth.getInstance();
-        fStore = FirebaseFirestore.getInstance();
+        // Check if user is already signed in
+        if (auth.getCurrentUser() != null) {
+            checkUserRole(auth.getCurrentUser().getUid());
+            return; // Exit onCreate to prevent UI flicker
+        }
+
+        setContentView(R.layout.activity_login);
 
         // Initialize UI components
         initializeViews();
@@ -103,28 +87,31 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // Show a loading message
-        Toast.makeText(this, "Logging in...", Toast.LENGTH_SHORT).show();
+        showProgressDialog("Logging in...");
 
         // --- Firebase Sign-In ---
-        mAuth.signInWithEmailAndPassword(email, password)
+        auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Sign in success
                             Log.d(TAG, "signInWithEmail:success");
-                            Toast.makeText(LoginActivity.this, "Login successful. Checking role...", Toast.LENGTH_SHORT).show();
 
                             // Check the role using the helper method
-                            if (mAuth.getCurrentUser() != null) {
-                                checkUserRole(mAuth.getCurrentUser().getUid());
+                            if (auth.getCurrentUser() != null) {
+                                checkUserRole(auth.getCurrentUser().getUid());
+                            } else {
+                                hideProgressDialog();
                             }
 
                         } else {
                             // If sign in fails, display a message to the user.
+                            hideProgressDialog();
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
-                            Toast.makeText(LoginActivity.this, "Authentication failed: " + task.getException().getMessage(),
-                                    Toast.LENGTH_LONG).show();
+                            showToast("Authentication failed: "
+                                    + (task.getException() != null ? task.getException().getMessage()
+                                            : "Unknown error"));
                         }
                     }
                 });
@@ -134,50 +121,55 @@ public class LoginActivity extends AppCompatActivity {
      * Helper method to fetch user role from Firestore and redirect
      */
     private void checkUserRole(String uid) {
-        DocumentReference df = fStore.collection("users").document(uid);
+        firestore.collection(Constants.KEY_COLLECTION_USERS).document(uid)
+                .get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        hideProgressDialog();
+                        if (documentSnapshot.exists()) {
+                            // Try getting the role with both possible key names (handling legacy data if
+                            // any)
+                            String role = documentSnapshot.getString(Constants.KEY_ROLE);
+                            if (role == null) {
+                                role = documentSnapshot.getString("userType"); // Fallback for old data
+                            }
 
-        // Extract the data from the document
-        df.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                if (documentSnapshot.exists()) {
-                    // Try getting the role with both possible key names
-                    String role = documentSnapshot.getString("role");
-                    if (role == null) {
-                        role = documentSnapshot.getString("userType");
-                    }
+                            Log.d(TAG, "Role found in DB: " + role);
 
-                    Log.d(TAG, "Role found in DB: " + role); // Log for debugging
+                            if (role != null) {
+                                Intent intent;
 
-                    if (role != null) {
-                        Intent intent;
+                                if (role.equalsIgnoreCase(Constants.ROLE_VOLUNTEER)) {
+                                    intent = new Intent(LoginActivity.this, VolunteerDashboardActivity.class);
+                                } else if (role.equalsIgnoreCase(Constants.ROLE_ADMIN)) {
+                                    intent = new Intent(LoginActivity.this, AdminDashboardActivity.class);
+                                } else if (role.equalsIgnoreCase(Constants.ROLE_FAMILY)
+                                        || role.equalsIgnoreCase("Family")) {
+                                    intent = new Intent(LoginActivity.this, FamilyDashboardActivity.class);
+                                } else {
+                                    // Default for "Senior Citizen"
+                                    intent = new Intent(LoginActivity.this, MainActivity.class);
+                                }
 
-                        // Check the specific string values
-                        if (role.equalsIgnoreCase("Volunteer")) {
-                            intent = new Intent(LoginActivity.this, VolunteerDashboardActivity.class);
-                        } else if (role.equalsIgnoreCase("Admin")) {
-                            intent = new Intent(LoginActivity.this, AdminDashboardActivity.class);
-                        } else if (role.equalsIgnoreCase("Family Member") || role.equalsIgnoreCase("Family")) {
-                            intent = new Intent(LoginActivity.this, FamilyDashboardActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                showToast("Role missing in database. Defaulting to Home.");
+                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                finish();
+                            }
                         } else {
-                            // Default for "Senior Citizen" or unknown roles
-                            intent = new Intent(LoginActivity.this, MainActivity.class);
+                            showToast("User details not found in database.");
+                            // Optional: Logout if user data is missing
+                            auth.signOut();
                         }
-
-                        // Perform the redirection
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        // Fallback if role field is totally missing
-                        Toast.makeText(LoginActivity.this, "Role missing in database. Defaulting to Home.", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                        finish();
                     }
-                } else {
-                    Toast.makeText(LoginActivity.this, "User details not found in database.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+                })
+                .addOnFailureListener(e -> {
+                    hideProgressDialog();
+                    showToast("Failed to fetch user data: " + e.getMessage());
+                });
     }
 }

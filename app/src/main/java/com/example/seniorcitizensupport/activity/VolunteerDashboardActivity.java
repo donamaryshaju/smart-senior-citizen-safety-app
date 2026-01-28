@@ -3,26 +3,23 @@ package com.example.seniorcitizensupport.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.seniorcitizensupport.BaseActivity;
+import com.example.seniorcitizensupport.Constants;
 import com.example.seniorcitizensupport.R;
 import com.example.seniorcitizensupport.model.RequestModel;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -33,15 +30,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class VolunteerDashboardActivity extends AppCompatActivity {
-
-    private static final String TAG = "VolunteerDashboard";
+public class VolunteerDashboardActivity extends BaseActivity {
 
     private RecyclerView recyclerView;
     private RequestAdapter adapter;
     private List<RequestModel> requestList;
-    private FirebaseFirestore fStore;
-    private FirebaseAuth mAuth;
 
     private CardView btnMedical, btnGrocery, btnTransport, btnHomecare;
     private TextView txtVolunteerName;
@@ -54,9 +47,6 @@ public class VolunteerDashboardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_volunteer_dashboard);
-
-        fStore = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
 
         // -------- UI References --------
         btnMedical = findViewById(R.id.card_medical);
@@ -71,51 +61,46 @@ public class VolunteerDashboardActivity extends AppCompatActivity {
         // -------- Recycler Setup --------
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         requestList = new ArrayList<>();
-        adapter = new RequestAdapter(requestList, this, fStore, mAuth);
+        adapter = new RequestAdapter(requestList, this, firestore, auth);
         recyclerView.setAdapter(adapter);
 
         // -------- Button Actions --------
-        btnMedical.setOnClickListener(v -> loadRequests("Medical Assistance"));
-        btnGrocery.setOnClickListener(v -> loadRequests("Grocery"));
-        btnTransport.setOnClickListener(v -> loadRequests("Transport"));
-        btnHomecare.setOnClickListener(v -> loadRequests("Homecare"));
+        btnMedical.setOnClickListener(v -> loadRequests(Constants.TYPE_MEDICAL));
+        btnGrocery.setOnClickListener(v -> loadRequests(Constants.TYPE_GROCERY));
+        btnTransport.setOnClickListener(v -> loadRequests(Constants.TYPE_TRANSPORT));
+        btnHomecare.setOnClickListener(v -> loadRequests(Constants.TYPE_HOMECARE));
 
         btnLogout.setOnClickListener(v -> {
-
-            //  Stop Firestore listener first
+            // Stop Firestore listener first
             if (firestoreListener != null) {
                 firestoreListener.remove();
                 firestoreListener = null;
             }
 
-            //  Sign out safely
-            FirebaseAuth.getInstance().signOut();
-
+            auth.signOut();
             Intent intent = new Intent(VolunteerDashboardActivity.this, LoginActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         });
 
-
         // -------- Load Initial Data --------
         loadVolunteerInfo();
-        loadRequests("Medical Assistance");
+        loadRequests(Constants.TYPE_MEDICAL); // Default view
     }
 
     // ---------------- LOAD VOLUNTEER NAME ----------------
     private void loadVolunteerInfo() {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) return;
+        if (auth.getCurrentUser() == null)
+            return;
 
-        fStore.collection("users").document(currentUser.getUid()).get()
+        firestore.collection(Constants.KEY_COLLECTION_USERS).document(auth.getCurrentUser().getUid()).get()
                 .addOnSuccessListener(documentSnapshot -> {
-
-                    String name = documentSnapshot.getString("fName");
-
-                    if (name == null || name.trim().isEmpty()) {
+                    String name = documentSnapshot.getString(Constants.KEY_NAME);
+                    if (name == null)
+                        name = documentSnapshot.getString("fName");
+                    if (name == null)
                         name = documentSnapshot.getString("fullName");
-                    }
 
                     if (name == null || name.trim().isEmpty()) {
                         name = "Volunteer";
@@ -131,18 +116,17 @@ public class VolunteerDashboardActivity extends AppCompatActivity {
 
         txtBottomSheetTitle.setText("Showing: " + category + " Requests");
 
-        if (firestoreListener != null) firestoreListener.remove();
+        if (firestoreListener != null)
+            firestoreListener.remove();
 
-        final String collectionToQuery =
-                "Grocery".equalsIgnoreCase(category) ? "orders" : "requests";
-
-        Query query = fStore.collection(collectionToQuery)
+        // Standardized to always use Constants.KEY_COLLECTION_REQUESTS
+        Query query = firestore.collection(Constants.KEY_COLLECTION_REQUESTS)
                 .whereEqualTo("type", category)
-                .whereEqualTo("status", "Pending");
+                .whereEqualTo("status", Constants.STATUS_PENDING);
 
         firestoreListener = query.addSnapshotListener((value, error) -> {
             if (error != null) {
-                Toast.makeText(this, "Failed to load requests", Toast.LENGTH_SHORT).show();
+                showToast("Failed to load requests");
                 requestList.clear();
                 adapter.notifyDataSetChanged();
                 return;
@@ -157,7 +141,8 @@ public class VolunteerDashboardActivity extends AppCompatActivity {
                             req.setDocumentId(doc.getId());
                             requestList.add(req);
                         }
-                    } catch (Exception ignored) {}
+                    } catch (Exception ignored) {
+                    }
                 }
                 adapter.notifyDataSetChanged();
             }
@@ -173,7 +158,7 @@ public class VolunteerDashboardActivity extends AppCompatActivity {
         private final FirebaseAuth mAuth;
 
         public RequestAdapter(List<RequestModel> list, Context context,
-                              FirebaseFirestore firestore, FirebaseAuth auth) {
+                FirebaseFirestore firestore, FirebaseAuth auth) {
             this.list = list;
             this.context = context;
             this.fStore = firestore;
@@ -192,7 +177,8 @@ public class VolunteerDashboardActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
             final RequestModel req = list.get(position);
-            if (req == null) return;
+            if (req == null)
+                return;
 
             String type = req.getType() != null ? req.getType() : "N/A";
             holder.txtType.setText(type);
@@ -202,16 +188,14 @@ public class VolunteerDashboardActivity extends AppCompatActivity {
                     : "No location provided";
             holder.txtLocation.setText(location);
 
-            // ✅ SHOW FULL DESCRIPTION FOR BOTH MEDICAL & GROCERY
+            // Show description or items count
             String description = req.getDescription();
-
             if (description != null && !description.trim().isEmpty()) {
                 holder.txtDesc.setText(description);
-            } else if ("Grocery".equalsIgnoreCase(type)) {
+            } else if (Constants.TYPE_GROCERY.equalsIgnoreCase(type)) {
                 List<Map<String, Object>> items = req.getItems();
                 holder.txtDesc.setText(
-                        (items != null ? items.size() : 0) + " items in order"
-                );
+                        (items != null ? items.size() : 0) + " items in order");
             } else {
                 holder.txtDesc.setText("No details provided");
             }
@@ -222,40 +206,43 @@ public class VolunteerDashboardActivity extends AppCompatActivity {
                     ContextCompat.getColor(context,
                             "High".equalsIgnoreCase(priority)
                                     ? android.R.color.holo_red_dark
-                                    : android.R.color.holo_green_dark)
-            );
+                                    : android.R.color.holo_green_dark));
 
             String userId = req.getUserId();
             if (userId != null && !userId.isEmpty()) {
                 holder.txtName.setText("Loading...");
-                fStore.collection("users").document(userId).get()
+                fStore.collection(Constants.KEY_COLLECTION_USERS).document(userId).get()
                         .addOnSuccessListener(ds -> {
-                            String name = ds.getString("fName");
+                            String name = ds.getString(Constants.KEY_NAME);
+                            if (name == null)
+                                name = ds.getString("fName");
+                            if (name == null)
+                                name = ds.getString("fullName");
                             holder.txtName.setText(
-                                    name != null ? "Senior: " + name : "Senior: Name not found"
-                            );
+                                    name != null ? "Senior: " + name : "Senior: Name not found");
                         });
             } else {
                 holder.txtName.setText("Senior: Unknown");
             }
 
             holder.btnAccept.setOnClickListener(v -> {
-                FirebaseUser currentUser = mAuth.getCurrentUser();
-                if (currentUser != null && req.getDocumentId() != null) {
+                if (mAuth.getCurrentUser() != null && req.getDocumentId() != null) {
 
-                    final String collectionToUpdate =
-                            "Grocery".equalsIgnoreCase(req.getType())
-                                    ? "orders"
-                                    : "requests";
-
-                    fStore.collection(collectionToUpdate)
+                    fStore.collection(Constants.KEY_COLLECTION_REQUESTS)
                             .document(req.getDocumentId())
-                            .update("status", "Accepted",
-                                    "volunteerId", currentUser.getUid())
-                            .addOnSuccessListener(a ->
-                                    Toast.makeText(context, "Request Accepted!", Toast.LENGTH_SHORT).show())
-                            .addOnFailureListener(e ->
-                                    Toast.makeText(context, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                            .update("status", Constants.STATUS_ACCEPTED,
+                                    "volunteerId", mAuth.getCurrentUser().getUid())
+                            .addOnSuccessListener(a -> {
+                                // Provide visual feedback using Toast (context is BaseActivity or similar)
+                                if (context instanceof BaseActivity) {
+                                    ((BaseActivity) context).showToast("Request Accepted!");
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                if (context instanceof BaseActivity) {
+                                    ((BaseActivity) context).showToast("Failed: " + e.getMessage());
+                                }
+                            });
                 }
             });
         }

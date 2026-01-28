@@ -72,9 +72,7 @@
             android:name=".activity.GroceryActivity"
             android:exported="false" />
 
-        <activity
-            android:name=".activity.GroceryCheckoutActivity"
-            android:exported="false" />
+
 
         <activity
             android:name=".activity.ManageMedicinesActivity"
@@ -84,7 +82,9 @@
             android:name=".activity.AddEditMedicineActivity"
             android:exported="false" />
 
-
+        <activity
+            android:name=".activity.GroceryRequestActivity"
+            android:exported="false" />
 
 
 

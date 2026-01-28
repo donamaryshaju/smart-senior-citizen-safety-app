@@ -66,6 +66,15 @@
             android:padding="16dp"
             android:orientation="vertical">
 
+            <Button
+                android:id="@+id/btn_my_tasks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="View My Accepted Tasks"
+                android:backgroundTint="#4CAF50"
+                android:textColor="#FFFFFF"
+                android:layout_marginBottom="16dp"/>
+
             <TextView
                 android:id="@+id/txt_current_category"
                 android:layout_width="match_parent"
