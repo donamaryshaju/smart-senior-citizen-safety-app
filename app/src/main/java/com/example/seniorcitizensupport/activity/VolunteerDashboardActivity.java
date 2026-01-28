@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -40,6 +41,7 @@ public class VolunteerDashboardActivity extends BaseActivity {
     private TextView txtVolunteerName;
     private TextView txtBottomSheetTitle;
     private Button btnLogout;
+    private Button btnMyTasks; // Added
 
     private ListenerRegistration firestoreListener;
 
@@ -57,6 +59,7 @@ public class VolunteerDashboardActivity extends BaseActivity {
         txtBottomSheetTitle = findViewById(R.id.bottom_sheet_title);
         recyclerView = findViewById(R.id.recycler_requests);
         btnLogout = findViewById(R.id.btn_logout);
+        btnMyTasks = findViewById(R.id.btn_my_tasks); // Added
 
         // -------- Recycler Setup --------
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -69,6 +72,11 @@ public class VolunteerDashboardActivity extends BaseActivity {
         btnGrocery.setOnClickListener(v -> loadRequests(Constants.TYPE_GROCERY));
         btnTransport.setOnClickListener(v -> loadRequests(Constants.TYPE_TRANSPORT));
         btnHomecare.setOnClickListener(v -> loadRequests(Constants.TYPE_HOMECARE));
+
+        // New Button Action
+        if (btnMyTasks != null) {
+            btnMyTasks.setOnClickListener(v -> loadMyTasks());
+        }
 
         btnLogout.setOnClickListener(v -> {
             // Stop Firestore listener first
@@ -111,6 +119,44 @@ public class VolunteerDashboardActivity extends BaseActivity {
                 .addOnFailureListener(e -> txtVolunteerName.setText("Hello, Volunteer"));
     }
 
+    // ---------------- LOAD MY ACCEPTED TASKS ----------------
+    private void loadMyTasks() {
+        txtBottomSheetTitle.setText("My Accepted Tasks");
+
+        if (firestoreListener != null)
+            firestoreListener.remove();
+
+        if (auth.getCurrentUser() == null)
+            return;
+
+        Query query = firestore.collection(Constants.KEY_COLLECTION_REQUESTS)
+                .whereEqualTo("volunteerId", auth.getCurrentUser().getUid())
+                .orderBy("timestamp", Query.Direction.DESCENDING);
+
+        firestoreListener = query.addSnapshotListener((value, error) -> {
+            if (error != null) {
+                showToast("Failed to load my tasks");
+                return;
+            }
+
+            if (value != null) {
+                requestList.clear();
+                for (DocumentSnapshot doc : value.getDocuments()) {
+                    try {
+                        RequestModel req = doc.toObject(RequestModel.class);
+                        if (req != null) {
+                            req.setDocumentId(doc.getId());
+                            requestList.add(req);
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+                adapter.setViewingMyTasks(true); // Tell adapter we are viewing accepted tasks
+                adapter.notifyDataSetChanged();
+            }
+        });
+    }
+
     // ---------------- LOAD REQUESTS ----------------
     private void loadRequests(String category) {
 
@@ -144,6 +190,7 @@ public class VolunteerDashboardActivity extends BaseActivity {
                     } catch (Exception ignored) {
                     }
                 }
+                adapter.setViewingMyTasks(false);
                 adapter.notifyDataSetChanged();
             }
         });
@@ -156,6 +203,7 @@ public class VolunteerDashboardActivity extends BaseActivity {
         private final Context context;
         private final FirebaseFirestore fStore;
         private final FirebaseAuth mAuth;
+        private boolean isViewingMyTasks = false;
 
         public RequestAdapter(List<RequestModel> list, Context context,
                 FirebaseFirestore firestore, FirebaseAuth auth) {
@@ -163,6 +211,10 @@ public class VolunteerDashboardActivity extends BaseActivity {
             this.context = context;
             this.fStore = firestore;
             this.mAuth = auth;
+        }
+
+        public void setViewingMyTasks(boolean viewingMyTasks) {
+            this.isViewingMyTasks = viewingMyTasks;
         }
 
         @NonNull
@@ -200,17 +252,22 @@ public class VolunteerDashboardActivity extends BaseActivity {
                 holder.txtDesc.setText("No details provided");
             }
 
-            String priority = req.getPriority() != null ? req.getPriority() : "Normal";
-            holder.txtPriority.setText(priority.toUpperCase(Locale.US) + " PRIORITY");
-            holder.txtPriority.setTextColor(
-                    ContextCompat.getColor(context,
-                            "High".equalsIgnoreCase(priority)
-                                    ? android.R.color.holo_red_dark
-                                    : android.R.color.holo_green_dark));
+            // Priority Logic
+            if (isViewingMyTasks) {
+                holder.txtPriority.setText("Status: " + req.getStatus());
+                holder.txtPriority.setTextColor(ContextCompat.getColor(context, android.R.color.black));
+            } else {
+                String priority = req.getPriority() != null ? req.getPriority() : "Normal";
+                holder.txtPriority.setText(priority.toUpperCase(Locale.US) + " PRIORITY");
+                holder.txtPriority.setTextColor(
+                        ContextCompat.getColor(context,
+                                "High".equalsIgnoreCase(priority)
+                                        ? android.R.color.holo_red_dark
+                                        : android.R.color.holo_green_dark));
+            }
 
             String userId = req.getUserId();
             if (userId != null && !userId.isEmpty()) {
-                holder.txtName.setText("Loading...");
                 fStore.collection(Constants.KEY_COLLECTION_USERS).document(userId).get()
                         .addOnSuccessListener(ds -> {
                             String name = ds.getString(Constants.KEY_NAME);
@@ -225,26 +282,42 @@ public class VolunteerDashboardActivity extends BaseActivity {
                 holder.txtName.setText("Senior: Unknown");
             }
 
-            holder.btnAccept.setOnClickListener(v -> {
-                if (mAuth.getCurrentUser() != null && req.getDocumentId() != null) {
-
-                    fStore.collection(Constants.KEY_COLLECTION_REQUESTS)
-                            .document(req.getDocumentId())
-                            .update("status", Constants.STATUS_ACCEPTED,
-                                    "volunteerId", mAuth.getCurrentUser().getUid())
-                            .addOnSuccessListener(a -> {
-                                // Provide visual feedback using Toast (context is BaseActivity or similar)
-                                if (context instanceof BaseActivity) {
-                                    ((BaseActivity) context).showToast("Request Accepted!");
-                                }
-                            })
-                            .addOnFailureListener(e -> {
-                                if (context instanceof BaseActivity) {
-                                    ((BaseActivity) context).showToast("Failed: " + e.getMessage());
-                                }
-                            });
+            // Button Logic
+            if (isViewingMyTasks) {
+                if (Constants.STATUS_COMPLETED.equals(req.getStatus())) {
+                    holder.btnAccept.setVisibility(View.GONE);
+                } else {
+                    holder.btnAccept.setVisibility(View.VISIBLE);
+                    holder.btnAccept.setText("MARK COMPLETED");
+                    holder.btnAccept
+                            .setOnClickListener(v -> updateStatus(req.getDocumentId(), Constants.STATUS_COMPLETED));
                 }
-            });
+            } else {
+                holder.btnAccept.setVisibility(View.VISIBLE);
+                holder.btnAccept.setText("ACCEPT REQUEST");
+                holder.btnAccept.setOnClickListener(v -> {
+                    if (mAuth.getCurrentUser() != null) {
+                        updateStatusWithVolunteer(req.getDocumentId(), mAuth.getCurrentUser().getUid());
+                    }
+                });
+            }
+        }
+
+        private void updateStatus(String docId, String status) {
+            fStore.collection(Constants.KEY_COLLECTION_REQUESTS).document(docId)
+                    .update("status", status)
+                    .addOnSuccessListener(aVoid -> Toast.makeText(context, "Status Updated", Toast.LENGTH_SHORT).show())
+                    .addOnFailureListener(
+                            e -> Toast.makeText(context, "Error updating status", Toast.LENGTH_SHORT).show());
+        }
+
+        private void updateStatusWithVolunteer(String docId, String volunteerId) {
+            fStore.collection(Constants.KEY_COLLECTION_REQUESTS).document(docId)
+                    .update("status", Constants.STATUS_ACCEPTED, "volunteerId", volunteerId)
+                    .addOnSuccessListener(
+                            aVoid -> Toast.makeText(context, "Request Accepted", Toast.LENGTH_SHORT).show())
+                    .addOnFailureListener(
+                            e -> Toast.makeText(context, "Error accepting request", Toast.LENGTH_SHORT).show());
         }
 
         @Override

@@ -14,63 +14,29 @@
         android:text="Welcome, Family Member!"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="30dp"
         android:textColor="@color/black"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Stay connected with your loved ones."
+        android:text="Emergency Alerts &amp; Senior Activity"
         android:layout_marginTop="8dp"
         android:textSize="16sp"
         android:textColor="#555555"/>
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="2dp"
+        android:layout_height="1dp"
         android:background="#AAAAAA"
-        android:layout_marginVertical="30dp"/>
+        android:layout_marginVertical="20dp"/>
 
-    <!-- Placeholder for connected senior info -->
-    <TextView
+    <!-- Alerts List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_family_alerts"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Your Connected Senior"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="10dp"/>
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:elevation="4dp">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Status: Active"
-                android:textColor="#4CAF50"
-                android:textSize="16sp"
-                android:textStyle="bold"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Last Update: Just now"
-                android:layout_marginTop="4dp"/>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <Button
-        android:id="@+id/button_check_senior_status"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:text="View Detailed Report"
-        android:backgroundTint="#8BC34A"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:layout_marginBottom="16dp"/>
 
     <Button
