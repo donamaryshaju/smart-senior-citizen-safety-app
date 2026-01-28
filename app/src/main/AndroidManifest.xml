@@ -101,6 +101,10 @@
 
 
 
+        <activity
+            android:name=".activity.UserListActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
