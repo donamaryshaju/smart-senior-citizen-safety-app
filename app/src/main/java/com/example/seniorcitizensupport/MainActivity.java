@@ -112,13 +112,13 @@ public class MainActivity extends BaseActivity {
 
         // --- DIRECT ACTION BUTTONS ---
         if (cardMedical != null)
-            cardMedical.setOnClickListener(v -> showDetailedDialog(Constants.TYPE_MEDICAL));
+            cardMedical.setOnClickListener(v -> launchRequestActivity(Constants.TYPE_MEDICAL));
         if (cardGrocery != null)
-            cardGrocery.setOnClickListener(v -> showDetailedDialog(Constants.TYPE_GROCERY));
+            cardGrocery.setOnClickListener(v -> launchRequestActivity(Constants.TYPE_GROCERY));
         if (cardTransport != null)
-            cardTransport.setOnClickListener(v -> showDetailedDialog(Constants.TYPE_TRANSPORT));
+            cardTransport.setOnClickListener(v -> launchRequestActivity(Constants.TYPE_TRANSPORT));
         if (cardHomeCare != null)
-            cardHomeCare.setOnClickListener(v -> showDetailedDialog(Constants.TYPE_HOMECARE));
+            cardHomeCare.setOnClickListener(v -> launchRequestActivity(Constants.TYPE_HOMECARE));
 
         // --- VIEW REQUEST HISTORY BUTTON ---
         if (btnViewRequests != null) {
@@ -266,5 +266,11 @@ public class MainActivity extends BaseActivity {
                     txtLastStatus.setText("Last Request: " + type + " (Pending)");
                 })
                 .addOnFailureListener(e -> showToast("Error: " + e.getMessage()));
+    }
+
+    private void launchRequestActivity(String type) {
+        Intent intent = new Intent(MainActivity.this, CreateRequestActivity.class);
+        intent.putExtra("EXTRA_REQUEST_TYPE", type);
+        startActivity(intent);
     }
 }

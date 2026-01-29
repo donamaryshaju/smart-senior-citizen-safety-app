@@ -55,11 +55,23 @@ public class VolunteerDashboardActivity extends BaseActivity {
         btnGrocery = findViewById(R.id.card_grocery);
         btnTransport = findViewById(R.id.card_transport);
         btnHomecare = findViewById(R.id.card_homecare);
+        btnHomecare = findViewById(R.id.card_homecare);
         txtVolunteerName = findViewById(R.id.text_volunteer_name);
+        // Bind new Profile fields (local vars or class fields? better class fields if
+        // used elsewhere, but local is fine for one-time load)
+        TextView txtVolunteerPhone = findViewById(R.id.text_volunteer_phone);
+        TextView txtVolunteerAddress = findViewById(R.id.text_volunteer_address);
+
         txtBottomSheetTitle = findViewById(R.id.bottom_sheet_title);
         recyclerView = findViewById(R.id.recycler_requests);
         btnLogout = findViewById(R.id.btn_logout);
+        Button btnProfile = findViewById(R.id.btn_profile);
         btnMyTasks = findViewById(R.id.btn_my_tasks); // Added
+
+        // Add Profile Click Listener
+        if (btnProfile != null) {
+            btnProfile.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
+        }
 
         // -------- Recycler Setup --------
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -79,12 +91,10 @@ public class VolunteerDashboardActivity extends BaseActivity {
         }
 
         btnLogout.setOnClickListener(v -> {
-            // Stop Firestore listener first
-            if (firestoreListener != null) {
+            if (firestoreListener != null)
                 firestoreListener.remove();
-                firestoreListener = null;
-            }
-
+            if (activeMissionListener != null)
+                activeMissionListener.remove();
             auth.signOut();
             Intent intent = new Intent(VolunteerDashboardActivity.this, LoginActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -94,14 +104,145 @@ public class VolunteerDashboardActivity extends BaseActivity {
 
         // -------- Load Initial Data --------
         loadVolunteerInfo();
-        loadRequests(Constants.TYPE_MEDICAL); // Default view
+        checkLocationPermission(); // Request Permission
+
+        // Dynamic Dashboard: Check for Active Mission first
+        loadActiveMission();
     }
 
-    // ---------------- LOAD VOLUNTEER NAME ----------------
-    private void loadVolunteerInfo() {
+    // ---------------- ACTIVE MISSION LOGIC ----------------
+    private ListenerRegistration activeMissionListener;
+    private CardView cardActiveMission;
+    private View containerCategories;
+    private TextView activeStatus, activeSenior, activeLocation;
+    private Button btnActiveAction;
+    private RequestModel currentActiveReq;
+
+    private void loadActiveMission() {
+        cardActiveMission = findViewById(R.id.card_active_mission);
+        containerCategories = findViewById(R.id.container_categories);
+        activeStatus = findViewById(R.id.mission_status);
+        activeSenior = findViewById(R.id.mission_senior_name);
+        activeLocation = findViewById(R.id.mission_location);
+        btnActiveAction = findViewById(R.id.btn_mission_action);
+
         if (auth.getCurrentUser() == null)
             return;
 
+        // Query for any request where volunteerId is ME and status is NOT
+        // Completed/Pending
+        // Actually, status should be Accepted, On the way, Arrived, In Progress.
+        // Simplified: status != Completed && status != Pending.
+        // But Firestore != queries are limited.
+        // Let's query for volunteerId = Me, and filter client side or order by status.
+
+        Query query = firestore.collection(Constants.KEY_COLLECTION_REQUESTS)
+                .whereEqualTo("volunteerId", auth.getCurrentUser().getUid())
+                .whereNotEqualTo("status", Constants.STATUS_COMPLETED);
+        // Note: whereNotEqualTo requires composite index often. If it fails, we catch
+        // error.
+        // Alternative: Query *all* my tasks and find the first one that is active.
+
+        activeMissionListener = query.addSnapshotListener((value, error) -> {
+            if (error != null)
+                return;
+            if (value != null && !value.isEmpty()) {
+                // Find true active task
+                RequestModel activeReq = null;
+                for (DocumentSnapshot doc : value.getDocuments()) {
+                    RequestModel r = doc.toObject(RequestModel.class);
+                    if (r != null && !Constants.STATUS_PENDING.equals(r.getStatus())) {
+                        r.setDocumentId(doc.getId());
+                        activeReq = r;
+                        break; // Take first active task
+                    }
+                }
+
+                if (activeReq != null) {
+                    showActiveMissionMode(activeReq);
+                } else {
+                    showStandardMode();
+                }
+            } else {
+                showStandardMode();
+            }
+        });
+    }
+
+    private void showActiveMissionMode(RequestModel req) {
+        currentActiveReq = req;
+        cardActiveMission.setVisibility(View.VISIBLE);
+        // containerCategories.setVisibility(View.GONE); // REMOVED: Keep categories
+        // visible
+        txtBottomSheetTitle.setText("Mission In Progress");
+
+        // Bind Data
+        activeStatus.setText(req.getStatus().toUpperCase());
+        activeLocation.setText(req.getLocation());
+
+        // Fetch Senior Name
+        firestore.collection(Constants.KEY_COLLECTION_USERS).document(req.getUserId()).get()
+                .addOnSuccessListener(ds -> {
+                    String name = ds.getString(Constants.KEY_NAME);
+                    if (name == null)
+                        name = ds.getString("fName");
+                    activeSenior.setText("Mission for: " + (name != null ? name : "Senior"));
+                });
+
+        // Bind Button
+        configureActiveButton(req);
+    }
+
+    private void showStandardMode() {
+        cardActiveMission.setVisibility(View.GONE);
+        // containerCategories.setVisibility(View.VISIBLE);
+        loadRequests(Constants.TYPE_MEDICAL); // Default load
+    }
+
+    private void configureActiveButton(RequestModel req) {
+        String status = req.getStatus();
+        btnActiveAction.setOnClickListener(null); // Reset
+
+        if (Constants.STATUS_ACCEPTED.equals(status)) {
+            btnActiveAction.setText("START TRIP");
+            btnActiveAction
+                    .setBackgroundTintList(ContextCompat.getColorStateList(this, android.R.color.holo_blue_dark));
+            btnActiveAction.setOnClickListener(
+                    v -> updateMissionStatus(req, Constants.STATUS_ON_THE_WAY, "Volunteer is on the way!"));
+        } else if (Constants.STATUS_ON_THE_WAY.equals(status)) {
+            btnActiveAction.setText("ARRIVED");
+            btnActiveAction
+                    .setBackgroundTintList(ContextCompat.getColorStateList(this, android.R.color.holo_orange_dark));
+            btnActiveAction.setOnClickListener(
+                    v -> updateMissionStatus(req, Constants.STATUS_ARRIVED, "Volunteer has arrived!"));
+        } else if (Constants.STATUS_ARRIVED.equals(status)) {
+            btnActiveAction.setText("START SERVICE");
+            btnActiveAction.setBackgroundTintList(ContextCompat.getColorStateList(this, android.R.color.holo_purple));
+            btnActiveAction.setOnClickListener(
+                    v -> updateMissionStatus(req, Constants.STATUS_IN_PROGRESS, "Service started."));
+        } else if (Constants.STATUS_IN_PROGRESS.equals(status)) {
+            btnActiveAction.setText("MARK COMPLETED");
+            btnActiveAction
+                    .setBackgroundTintList(ContextCompat.getColorStateList(this, android.R.color.holo_green_light));
+            btnActiveAction.setOnClickListener(
+                    v -> updateMissionStatus(req, Constants.STATUS_COMPLETED, "Service Completed."));
+        }
+    }
+
+    private void updateMissionStatus(RequestModel req, String newStatus, String msg) {
+        firestore.collection(Constants.KEY_COLLECTION_REQUESTS).document(req.getDocumentId())
+                .update("status", newStatus)
+                .addOnSuccessListener(v -> {
+                    Toast.makeText(this, "Status Updated", Toast.LENGTH_SHORT).show();
+                    com.example.seniorcitizensupport.utils.NotificationHelper.sendNotification(req.getUserId(),
+                            "Update", msg);
+                });
+    }
+
+    // ---------------- LOAD VOLUNTEER NAME & PROFILE ----------------
+    private void loadVolunteerInfo() {
+        if (auth.getCurrentUser() == null)
+            return;
         firestore.collection(Constants.KEY_COLLECTION_USERS).document(auth.getCurrentUser().getUid()).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     String name = documentSnapshot.getString(Constants.KEY_NAME);
@@ -109,12 +250,22 @@ public class VolunteerDashboardActivity extends BaseActivity {
                         name = documentSnapshot.getString("fName");
                     if (name == null)
                         name = documentSnapshot.getString("fullName");
-
-                    if (name == null || name.trim().isEmpty()) {
+                    if (name == null || name.trim().isEmpty())
                         name = "Volunteer";
-                    }
-
                     txtVolunteerName.setText("Hello, " + name);
+
+                    // Load Phone & Address
+                    String phone = documentSnapshot.getString(Constants.KEY_PHONE);
+                    String address = documentSnapshot.getString("address"); // Using raw key as it might not be in
+                                                                            // Constants
+
+                    TextView txtPhone = findViewById(R.id.text_volunteer_phone);
+                    TextView txtAddr = findViewById(R.id.text_volunteer_address);
+
+                    if (txtPhone != null)
+                        txtPhone.setText(phone != null ? "Phone: " + phone : "Phone: N/A");
+                    if (txtAddr != null)
+                        txtAddr.setText(address != null ? "Address: " + address : "Address: N/A");
                 })
                 .addOnFailureListener(e -> txtVolunteerName.setText("Hello, Volunteer"));
     }
@@ -122,10 +273,8 @@ public class VolunteerDashboardActivity extends BaseActivity {
     // ---------------- LOAD MY ACCEPTED TASKS ----------------
     private void loadMyTasks() {
         txtBottomSheetTitle.setText("My Accepted Tasks");
-
         if (firestoreListener != null)
             firestoreListener.remove();
-
         if (auth.getCurrentUser() == null)
             return;
 
@@ -135,10 +284,9 @@ public class VolunteerDashboardActivity extends BaseActivity {
 
         firestoreListener = query.addSnapshotListener((value, error) -> {
             if (error != null) {
-                showToast("Failed to load my tasks");
+                // showToast("Failed to load my tasks");
                 return;
             }
-
             if (value != null) {
                 requestList.clear();
                 for (DocumentSnapshot doc : value.getDocuments()) {
@@ -151,7 +299,7 @@ public class VolunteerDashboardActivity extends BaseActivity {
                     } catch (Exception ignored) {
                     }
                 }
-                adapter.setViewingMyTasks(true); // Tell adapter we are viewing accepted tasks
+                adapter.setViewingMyTasks(true);
                 adapter.notifyDataSetChanged();
             }
         });
@@ -159,25 +307,25 @@ public class VolunteerDashboardActivity extends BaseActivity {
 
     // ---------------- LOAD REQUESTS ----------------
     private void loadRequests(String category) {
+        // Ensure standard mode is visible
+        if (cardActiveMission.getVisibility() == View.VISIBLE) {
+            // Logic to handle visibility if needed
+        }
 
-        txtBottomSheetTitle.setText("Showing: " + category + " Requests");
-
+        txtBottomSheetTitle.setText("Showing: " + category + " Requests (Nearby)");
         if (firestoreListener != null)
             firestoreListener.remove();
 
-        // Standardized to always use Constants.KEY_COLLECTION_REQUESTS
         Query query = firestore.collection(Constants.KEY_COLLECTION_REQUESTS)
                 .whereEqualTo("type", category)
                 .whereEqualTo("status", Constants.STATUS_PENDING);
 
         firestoreListener = query.addSnapshotListener((value, error) -> {
             if (error != null) {
-                showToast("Failed to load requests");
                 requestList.clear();
                 adapter.notifyDataSetChanged();
                 return;
             }
-
             if (value != null) {
                 requestList.clear();
                 for (DocumentSnapshot doc : value.getDocuments()) {
@@ -185,7 +333,21 @@ public class VolunteerDashboardActivity extends BaseActivity {
                         RequestModel req = doc.toObject(RequestModel.class);
                         if (req != null) {
                             req.setDocumentId(doc.getId());
-                            requestList.add(req);
+
+                            // FILTER logic:
+                            double reqLat = req.getLatitude();
+                            double reqLng = req.getLongitude();
+
+                            if (currentLat != 0 && currentLng != 0 && reqLat != 0 && reqLng != 0) {
+                                double dist = calculateDistance(currentLat, currentLng, reqLat, reqLng);
+                                if (dist <= MAX_DISTANCE_KM) {
+                                    requestList.add(req);
+                                }
+                            } else {
+                                // Fallback: If locations are missing, show by default so we don't hide
+                                // everything
+                                requestList.add(req);
+                            }
                         }
                     } catch (Exception ignored) {
                     }
@@ -194,6 +356,65 @@ public class VolunteerDashboardActivity extends BaseActivity {
                 adapter.notifyDataSetChanged();
             }
         });
+    }
+
+    // ---------------- LOCATION & FILTERING ----------------
+    private double currentLat = 0.0;
+    private double currentLng = 0.0;
+    private static final double MAX_DISTANCE_KM = 50.0; // Filter requests within 50km
+
+    private void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            androidx.core.app.ActivityCompat.requestPermissions(this,
+                    new String[] { android.Manifest.permission.ACCESS_FINE_LOCATION }, 100);
+        } else {
+            fetchVolunteerLocation();
+        }
+    }
+
+    private void fetchVolunteerLocation() {
+        com.google.android.gms.location.FusedLocationProviderClient fusedLocationClient = com.google.android.gms.location.LocationServices
+                .getFusedLocationProviderClient(this);
+        try {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+                if (location != null) {
+                    currentLat = location.getLatitude();
+                    currentLng = location.getLongitude();
+                    // Optional: Refresh list if already loaded but filter wasn't applied
+                    if (adapter != null)
+                        adapter.notifyDataSetChanged();
+                }
+            });
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+            @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 100 && grantResults.length > 0
+                && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            fetchVolunteerLocation();
+        } else {
+            Toast.makeText(this, "Location permission required for nearby requests", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        if (lat1 == 0 || lat2 == 0)
+            return 0; // If either is missing, assume 0 distance or handle differently
+        // Haversine formula
+        double R = 6371; // Radius of the earth in km
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // Distance in km
     }
 
     // ---------------- ADAPTER ----------------
@@ -257,6 +478,7 @@ public class VolunteerDashboardActivity extends BaseActivity {
                 holder.txtPriority.setText("Status: " + req.getStatus());
                 holder.txtPriority.setTextColor(ContextCompat.getColor(context, android.R.color.black));
             } else {
+                // Priority logic...
                 String priority = req.getPriority() != null ? req.getPriority() : "Normal";
                 holder.txtPriority.setText(priority.toUpperCase(Locale.US) + " PRIORITY");
                 holder.txtPriority.setTextColor(
@@ -266,6 +488,7 @@ public class VolunteerDashboardActivity extends BaseActivity {
                                         : android.R.color.holo_green_dark));
             }
 
+            // Fetch Senior Name
             String userId = req.getUserId();
             if (userId != null && !userId.isEmpty()) {
                 fStore.collection(Constants.KEY_COLLECTION_USERS).document(userId).get()
@@ -275,49 +498,84 @@ public class VolunteerDashboardActivity extends BaseActivity {
                                 name = ds.getString("fName");
                             if (name == null)
                                 name = ds.getString("fullName");
-                            holder.txtName.setText(
-                                    name != null ? "Senior: " + name : "Senior: Name not found");
+                            holder.txtName.setText(name != null ? "Senior: " + name : "Senior: Name not found");
                         });
-            } else {
-                holder.txtName.setText("Senior: Unknown");
             }
 
-            // Button Logic
-            if (isViewingMyTasks) {
-                if (Constants.STATUS_COMPLETED.equals(req.getStatus())) {
-                    holder.btnAccept.setVisibility(View.GONE);
-                } else {
-                    holder.btnAccept.setVisibility(View.VISIBLE);
-                    holder.btnAccept.setText("MARK COMPLETED");
-                    holder.btnAccept
-                            .setOnClickListener(v -> updateStatus(req.getDocumentId(), Constants.STATUS_COMPLETED));
-                }
-            } else {
-                holder.btnAccept.setVisibility(View.VISIBLE);
+            // Button Logic - Dynamic State Machine
+            holder.btnAccept.setVisibility(View.VISIBLE);
+
+            if (!isViewingMyTasks) {
+                // Available Request -> Accept
                 holder.btnAccept.setText("ACCEPT REQUEST");
+                holder.btnAccept.setBackgroundTintList(
+                        ContextCompat.getColorStateList(context, android.R.color.holo_green_dark));
                 holder.btnAccept.setOnClickListener(v -> {
                     if (mAuth.getCurrentUser() != null) {
-                        updateStatusWithVolunteer(req.getDocumentId(), mAuth.getCurrentUser().getUid());
+                        acceptRequest(req, mAuth.getCurrentUser().getUid());
                     }
                 });
+            } else {
+                // My Task -> Status Progression
+                String status = req.getStatus();
+
+                if (Constants.STATUS_ACCEPTED.equals(status)) {
+                    holder.btnAccept.setText("START TRIP (On My Way)");
+                    holder.btnAccept.setBackgroundTintList(
+                            ContextCompat.getColorStateList(context, android.R.color.holo_blue_dark));
+                    holder.btnAccept.setOnClickListener(
+                            v -> updateStatus(req, Constants.STATUS_ON_THE_WAY, "Volunteer is on the way!"));
+                } else if (Constants.STATUS_ON_THE_WAY.equals(status)) {
+                    holder.btnAccept.setText("ARRIVED");
+                    holder.btnAccept.setBackgroundTintList(
+                            ContextCompat.getColorStateList(context, android.R.color.holo_orange_dark));
+                    holder.btnAccept.setOnClickListener(
+                            v -> updateStatus(req, Constants.STATUS_ARRIVED, "Volunteer has arrived!"));
+                } else if (Constants.STATUS_ARRIVED.equals(status)) {
+                    holder.btnAccept.setText("START SERVICE");
+                    holder.btnAccept.setBackgroundTintList(
+                            ContextCompat.getColorStateList(context, android.R.color.holo_purple));
+                    holder.btnAccept.setOnClickListener(
+                            v -> updateStatus(req, Constants.STATUS_IN_PROGRESS, "Service has started."));
+                } else if (Constants.STATUS_IN_PROGRESS.equals(status)) {
+                    holder.btnAccept.setText("MARK COMPLETED");
+                    holder.btnAccept.setBackgroundTintList(
+                            ContextCompat.getColorStateList(context, android.R.color.holo_green_light));
+                    holder.btnAccept.setOnClickListener(
+                            v -> updateStatus(req, Constants.STATUS_COMPLETED, "Service Completed."));
+                } else if (Constants.STATUS_COMPLETED.equals(status)) {
+                    holder.btnAccept.setVisibility(View.GONE);
+                }
             }
         }
 
-        private void updateStatus(String docId, String status) {
-            fStore.collection(Constants.KEY_COLLECTION_REQUESTS).document(docId)
-                    .update("status", status)
-                    .addOnSuccessListener(aVoid -> Toast.makeText(context, "Status Updated", Toast.LENGTH_SHORT).show())
-                    .addOnFailureListener(
-                            e -> Toast.makeText(context, "Error updating status", Toast.LENGTH_SHORT).show());
+        private void acceptRequest(RequestModel req, String volunteerId) {
+            fStore.collection(Constants.KEY_COLLECTION_REQUESTS).document(req.getDocumentId())
+                    .update("status", Constants.STATUS_ACCEPTED, "volunteerId", volunteerId)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(context, "Request Accepted", Toast.LENGTH_SHORT).show();
+                        // Notify Senior
+                        com.example.seniorcitizensupport.utils.NotificationHelper.sendNotification(
+                                req.getUserId(),
+                                "Request Accepted",
+                                "A volunteer has accepted your request.");
+                    })
+                    .addOnFailureListener(e -> Toast.makeText(context, "Error accepting", Toast.LENGTH_SHORT).show());
         }
 
-        private void updateStatusWithVolunteer(String docId, String volunteerId) {
-            fStore.collection(Constants.KEY_COLLECTION_REQUESTS).document(docId)
-                    .update("status", Constants.STATUS_ACCEPTED, "volunteerId", volunteerId)
-                    .addOnSuccessListener(
-                            aVoid -> Toast.makeText(context, "Request Accepted", Toast.LENGTH_SHORT).show())
+        private void updateStatus(RequestModel req, String newStatus, String notificationMsg) {
+            fStore.collection(Constants.KEY_COLLECTION_REQUESTS).document(req.getDocumentId())
+                    .update("status", newStatus)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(context, "Status Updated: " + newStatus, Toast.LENGTH_SHORT).show();
+                        // Send Notification to Senior
+                        com.example.seniorcitizensupport.utils.NotificationHelper.sendNotification(
+                                req.getUserId(),
+                                "Status Update",
+                                notificationMsg);
+                    })
                     .addOnFailureListener(
-                            e -> Toast.makeText(context, "Error accepting request", Toast.LENGTH_SHORT).show());
+                            e -> Toast.makeText(context, "Error updating status", Toast.LENGTH_SHORT).show());
         }
 
         @Override
@@ -326,7 +584,6 @@ public class VolunteerDashboardActivity extends BaseActivity {
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {
-
             TextView txtType, txtDesc, txtPriority, txtName, txtLocation;
             Button btnAccept;
 

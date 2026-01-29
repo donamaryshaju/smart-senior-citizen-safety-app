@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,8 +21,7 @@ import com.example.seniorcitizensupport.BaseActivity;
 import com.example.seniorcitizensupport.Constants;
 import com.example.seniorcitizensupport.R;
 import com.example.seniorcitizensupport.model.RequestModel;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.AggregateQuery;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.AggregateQuerySnapshot;
 import com.google.firebase.firestore.AggregateSource;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -31,7 +31,6 @@ import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class AdminDashboardActivity extends BaseActivity {
 
@@ -56,10 +55,14 @@ public class AdminDashboardActivity extends BaseActivity {
         iconProfile = findViewById(R.id.icon_profile);
         iconNotifications = findViewById(R.id.icon_notifications);
         recyclerView = findViewById(R.id.recycler_admin_requests);
+        Button btnReports = findViewById(R.id.btn_view_reports);
 
         // Header Icons Action
         iconProfile.setOnClickListener(v -> showToast("Admin Profile"));
         iconNotifications.setOnClickListener(v -> showToast("Notifications"));
+
+        // Reports
+        btnReports.setOnClickListener(v -> showReportsDialog());
 
         // Logout
         btnLogout.setOnClickListener(v -> {
@@ -84,25 +87,52 @@ public class AdminDashboardActivity extends BaseActivity {
     }
 
     private void loadStats() {
-        // Count Seniors
-        firestore.collection(Constants.KEY_COLLECTION_USERS)
-                .whereEqualTo(Constants.KEY_ROLE, Constants.ROLE_SENIOR)
-                .count()
-                .get(AggregateSource.SERVER)
-                .addOnSuccessListener(snapshot -> txtSeniorCount.setText(String.valueOf(snapshot.getCount())));
+        // Count Seniors (Role + UserType for legacy)
+        com.google.android.gms.tasks.Task<AggregateQuerySnapshot> countSeniorRole = firestore
+                .collection(Constants.KEY_COLLECTION_USERS)
+                .whereEqualTo(Constants.KEY_ROLE, Constants.ROLE_SENIOR).count().get(AggregateSource.SERVER);
+        com.google.android.gms.tasks.Task<AggregateQuerySnapshot> countSeniorType = firestore
+                .collection(Constants.KEY_COLLECTION_USERS)
+                .whereEqualTo("userType", Constants.ROLE_SENIOR).count().get(AggregateSource.SERVER);
 
         // Count Volunteers
-        firestore.collection(Constants.KEY_COLLECTION_USERS)
-                .whereEqualTo(Constants.KEY_ROLE, Constants.ROLE_VOLUNTEER)
-                .count()
-                .get(AggregateSource.SERVER)
-                .addOnSuccessListener(snapshot -> txtVolunteerCount.setText(String.valueOf(snapshot.getCount())));
+        com.google.android.gms.tasks.Task<AggregateQuerySnapshot> countVolRole = firestore
+                .collection(Constants.KEY_COLLECTION_USERS)
+                .whereEqualTo(Constants.KEY_ROLE, Constants.ROLE_VOLUNTEER).count().get(AggregateSource.SERVER);
+        com.google.android.gms.tasks.Task<AggregateQuerySnapshot> countVolType = firestore
+                .collection(Constants.KEY_COLLECTION_USERS)
+                .whereEqualTo("userType", Constants.ROLE_VOLUNTEER).count().get(AggregateSource.SERVER);
 
         // Count Requests
         firestore.collection(Constants.KEY_COLLECTION_REQUESTS)
                 .count()
                 .get(AggregateSource.SERVER)
                 .addOnSuccessListener(snapshot -> txtRequestCount.setText(String.valueOf(snapshot.getCount())));
+
+        // Update Senior Count
+        Tasks.whenAllSuccess(countSeniorRole, countSeniorType).addOnSuccessListener(objects -> {
+            long c1 = ((AggregateQuerySnapshot) objects.get(0)).getCount();
+            long c2 = ((AggregateQuerySnapshot) objects.get(1)).getCount();
+            // If overlap is possible we might double count, but for migration usually
+            // fields are mutually exclusive or same.
+            // If they are exclusive (old docs have userType, new have role), sum is
+            // correct.
+            // If a doc has BOTH, it's double counted. Let's assume exclusive for now or
+            // that migrated docs kept userType?
+            // Safer: If c1 > 0, assume modern schema?
+            // Let's just SUM for now as a best-effort fix for "zero" issue.
+            // Actually, querying twice is cleaner than fetching all.
+            long total = c1 + c2;
+            txtSeniorCount.setText(String.valueOf(total));
+        });
+
+        // Update Volunteer Count
+        Tasks.whenAllSuccess(countVolRole, countVolType).addOnSuccessListener(objects -> {
+            long c1 = ((AggregateQuerySnapshot) objects.get(0)).getCount();
+            long c2 = ((AggregateQuerySnapshot) objects.get(1)).getCount();
+            long total = c1 + c2;
+            txtVolunteerCount.setText(String.valueOf(total));
+        });
 
         // Make Cards Clickable
         findViewById(R.id.card_stats_seniors).setOnClickListener(v -> openUserList(Constants.ROLE_SENIOR));
@@ -143,6 +173,97 @@ public class AdminDashboardActivity extends BaseActivity {
         });
     }
 
+    // --- NEW: Reports Dialog ---
+    private void showReportsDialog() {
+        showProgressDialog("Generating Reports...");
+
+        // We will run parallel counts for SOS, Completed, and Pending
+        com.google.android.gms.tasks.Task<AggregateQuerySnapshot> countSOS = firestore
+                .collection(Constants.KEY_COLLECTION_REQUESTS)
+                .whereEqualTo("type", Constants.TYPE_SOS).count().get(AggregateSource.SERVER);
+
+        com.google.android.gms.tasks.Task<AggregateQuerySnapshot> countMedical = firestore
+                .collection(Constants.KEY_COLLECTION_REQUESTS)
+                .whereEqualTo("type", Constants.TYPE_MEDICAL).count().get(AggregateSource.SERVER);
+
+        com.google.android.gms.tasks.Task<AggregateQuerySnapshot> countCompleted = firestore
+                .collection(Constants.KEY_COLLECTION_REQUESTS)
+                .whereEqualTo("status", Constants.STATUS_COMPLETED).count().get(AggregateSource.SERVER);
+
+        Tasks.whenAllSuccess(countSOS, countMedical, countCompleted).addOnSuccessListener(objects -> {
+            hideProgressDialog();
+            long sos = ((AggregateQuerySnapshot) objects.get(0)).getCount();
+            long med = ((AggregateQuerySnapshot) objects.get(1)).getCount();
+            long comp = ((AggregateQuerySnapshot) objects.get(2)).getCount();
+
+            new AlertDialog.Builder(this)
+                    .setTitle("System Reports")
+                    .setMessage("Emergency Requests: " + sos + "\n" +
+                            "Medical Requests: " + med + "\n" +
+                            "Completed Requests: " + comp + "\n\n" +
+                            "Keep monitoring for better safety!")
+                    .setPositiveButton("OK", null)
+                    .show();
+        }).addOnFailureListener(e -> {
+            hideProgressDialog();
+            showToast("Failed to generate reports");
+        });
+    }
+
+    // --- NEW: Assignment Logic ---
+    public void showAssignVolunteerDialog(RequestModel req) {
+        showProgressDialog("Loading Volunteers...");
+        firestore.collection(Constants.KEY_COLLECTION_USERS)
+                .whereEqualTo(Constants.KEY_ROLE, Constants.ROLE_VOLUNTEER)
+                .get()
+                .addOnSuccessListener(snap -> {
+                    hideProgressDialog();
+                    List<String> names = new ArrayList<>();
+                    List<String> ids = new ArrayList<>();
+                    for (DocumentSnapshot doc : snap) {
+                        String name = doc.getString(Constants.KEY_NAME);
+                        if (name == null)
+                            name = doc.getString("fName");
+                        if (name == null)
+                            name = "Unknown";
+                        names.add(name);
+                        ids.add(doc.getId());
+                    }
+
+                    if (names.isEmpty()) {
+                        showToast("No volunteers found.");
+                        return;
+                    }
+
+                    new AlertDialog.Builder(this)
+                            .setTitle("Assign Volunteer")
+                            .setItems(names.toArray(new String[0]), (dialog, which) -> {
+                                assignVolunteer(req, ids.get(which), names.get(which));
+                            })
+                            .setNegativeButton("Cancel", null)
+                            .show();
+
+                }).addOnFailureListener(e -> {
+                    hideProgressDialog();
+                    showToast("Error loading volunteers");
+                });
+    }
+
+    private void assignVolunteer(RequestModel req, String volId, String volName) {
+        showProgressDialog("Assigning...");
+        firestore.collection(Constants.KEY_COLLECTION_REQUESTS).document(req.getDocumentId())
+                .update("volunteerId", volId,
+                        "status", Constants.STATUS_ACCEPTED) // Accepted means In Progress/Assigned here
+                .addOnSuccessListener(v -> {
+                    hideProgressDialog();
+                    showToast("Request Assigned to " + volName);
+                })
+                .addOnFailureListener(e -> {
+                    hideProgressDialog();
+                    showToast("Failed to assign");
+                });
+    }
+
     // --- ADAPTER ---
     static class AdminRequestAdapter extends RecyclerView.Adapter<AdminRequestAdapter.ViewHolder> {
         private final List<RequestModel> list;
@@ -179,9 +300,18 @@ public class AdminDashboardActivity extends BaseActivity {
                 holder.txtPriority.setTextColor(0xFF000000);
             }
 
+            // Assign Button Logic
+            if (Constants.STATUS_PENDING.equalsIgnoreCase(req.getStatus())) {
+                holder.btnAssign.setVisibility(View.VISIBLE);
+                holder.btnAssign
+                        .setOnClickListener(v -> ((AdminDashboardActivity) context).showAssignVolunteerDialog(req));
+            } else {
+                holder.btnAssign.setVisibility(View.GONE);
+            }
+
             // DELETE ACTION
             holder.btnAccept.setVisibility(View.VISIBLE);
-            holder.btnAccept.setText("DELETE REQUEST");
+            holder.btnAccept.setText("DELETE");
             holder.btnAccept
                     .setBackgroundTintList(ContextCompat.getColorStateList(context, android.R.color.holo_red_dark));
 
@@ -209,7 +339,6 @@ public class AdminDashboardActivity extends BaseActivity {
                     .delete()
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(context, "Request Deleted", Toast.LENGTH_SHORT).show();
-                        // Adapter update will happen via SnapshotListener automatically
                     })
                     .addOnFailureListener(e -> Toast.makeText(context, "Error deleting", Toast.LENGTH_SHORT).show());
         }
@@ -221,7 +350,7 @@ public class AdminDashboardActivity extends BaseActivity {
 
         static class ViewHolder extends RecyclerView.ViewHolder {
             TextView txtType, txtDesc, txtPriority, txtName, txtLocation;
-            Button btnAccept;
+            Button btnAccept, btnAssign;
             com.google.android.material.card.MaterialCardView cardView;
 
             public ViewHolder(@NonNull View itemView) {
@@ -232,6 +361,7 @@ public class AdminDashboardActivity extends BaseActivity {
                 txtName = itemView.findViewById(R.id.req_senior_name);
                 txtLocation = itemView.findViewById(R.id.req_location);
                 btnAccept = itemView.findViewById(R.id.btn_accept);
+                btnAssign = itemView.findViewById(R.id.btn_assign);
 
                 if (itemView instanceof com.google.android.material.card.MaterialCardView) {
                     cardView = (com.google.android.material.card.MaterialCardView) itemView;

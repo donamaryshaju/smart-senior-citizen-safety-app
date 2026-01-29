@@ -1,4 +1,6 @@
-package com.example.seniorcitizensupport.activity;import android.app.Dialog;
+package com.example.seniorcitizensupport.activity;
+
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -81,57 +83,82 @@ public class CheckoutActivity extends AppCompatActivity {
         textTotal.setText("Total: ₹" + String.format("%.2f", total));
     }
 
-    // --- STEP 1: Fetch Profile Data ---
+    // --- STEP 1: Fetch Profile Data & Current Location ---
     private void fetchProfileAndPlaceOrder() {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             Toast.makeText(this, "Session expired. Please login again.", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        // Check Permissions first
+        if (androidx.core.content.ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            androidx.core.app.ActivityCompat.requestPermissions(this,
+                    new String[] { android.Manifest.permission.ACCESS_FINE_LOCATION }, 101);
+            return;
+        }
+
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-        // Disable button and show loading text
         btnConfirm.setEnabled(false);
-        btnConfirm.setText("Fetching Address...");
+        btnConfirm.setText("Fetching Details...");
 
-        // Go to 'users' collection -> current userId document
+        // 1. Fetch Profile
         fStore.collection("users").document(userId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     String address = "Address not provided";
                     String phone = "No phone provided";
 
                     if (documentSnapshot.exists()) {
-                        // Get the address field (Make sure your Profile page saves it as "address")
-                        if (documentSnapshot.contains("address") && documentSnapshot.getString("address") != null) {
+                        if (documentSnapshot.contains("address") && documentSnapshot.getString("address") != null)
                             address = documentSnapshot.getString("address");
-                        }
-                        // Get phone number too, it helps volunteers
-                        if (documentSnapshot.contains("phone") && documentSnapshot.getString("phone") != null) {
+                        if (documentSnapshot.contains("phone") && documentSnapshot.getString("phone") != null)
                             phone = documentSnapshot.getString("phone");
-                        }
                     }
 
-                    // Check if address is empty/default
                     if (address.equals("Address not provided") || address.trim().isEmpty()) {
-                        Toast.makeText(CheckoutActivity.this, "Please add an address in your Profile first!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(CheckoutActivity.this, "Please update address in Profile!", Toast.LENGTH_LONG)
+                                .show();
                         btnConfirm.setEnabled(true);
                         btnConfirm.setText("CONFIRM ORDER");
-                        return; // Stop here, don't place order
+                        return;
                     }
 
-                    // Proceed to place order with real data
-                    placeOrderFinal(userId, address, phone);
+                    // 2. Fetch Location
+                    fetchLocationAndProceed(userId, address, phone);
                 })
                 .addOnFailureListener(e -> {
-                    // Network error or permission error
-                    Toast.makeText(CheckoutActivity.this, "Could not fetch profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CheckoutActivity.this, "Error fetching profile", Toast.LENGTH_SHORT).show();
                     btnConfirm.setEnabled(true);
                     btnConfirm.setText("CONFIRM ORDER");
                 });
     }
 
-    // --- STEP 2: Place Order with Real Address ---
-    private void placeOrderFinal(String userId, String userAddress, String userPhone) {
+    private void fetchLocationAndProceed(String userId, String address, String phone) {
+        com.google.android.gms.location.FusedLocationProviderClient fusedLocationClient = com.google.android.gms.location.LocationServices
+                .getFusedLocationProviderClient(this);
+
+        try {
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(location -> {
+                        double lat = 0.0;
+                        double lng = 0.0;
+                        if (location != null) {
+                            lat = location.getLatitude();
+                            lng = location.getLongitude();
+                        }
+                        placeOrderFinal(userId, address, phone, lat, lng);
+                    })
+                    .addOnFailureListener(e -> {
+                        // If location fails, proceed with 0.0 (or handle error)
+                        placeOrderFinal(userId, address, phone, 0.0, 0.0);
+                    });
+        } catch (SecurityException e) {
+            placeOrderFinal(userId, address, phone, 0.0, 0.0);
+        }
+    }
+
+    // --- STEP 2: Place Order with Real Address & Location ---
+    private void placeOrderFinal(String userId, String userAddress, String userPhone, double lat, double lng) {
         btnConfirm.setText("Processing...");
 
         // 1. Prepare Description
@@ -140,7 +167,9 @@ public class CheckoutActivity extends AppCompatActivity {
         for (MedicineModel m : cartList) {
             String displayName = m.getName();
             String strength = m.getStrength();
-            if (!strength.isEmpty()) { displayName += " (" + strength + ")"; }
+            if (!strength.isEmpty()) {
+                displayName += " (" + strength + ")";
+            }
             double itemPrice = m.getDisplayPrice();
             orderSummary.append("- ").append(displayName).append(" (₹").append(itemPrice).append(")\n");
             finalTotal += itemPrice;
@@ -158,6 +187,8 @@ public class CheckoutActivity extends AppCompatActivity {
         // USE REAL PROFILE DATA HERE
         request.put("location", userAddress);
         request.put("contactNumber", userPhone);
+        request.put("latitude", lat);
+        request.put("longitude", lng);
 
         // 2. Batch Write (Reduce Stock)
         WriteBatch batch = fStore.batch();
@@ -208,9 +239,13 @@ public class CheckoutActivity extends AppCompatActivity {
     // --- Simple Adapter for Checkout List ---
     class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
         List<MedicineModel> list;
-        public CartAdapter(List<MedicineModel> list) { this.list = list; }
 
-        @NonNull @Override
+        public CartAdapter(List<MedicineModel> list) {
+            this.list = list;
+        }
+
+        @NonNull
+        @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_medicine, parent, false);
             return new ViewHolder(view);
@@ -220,25 +255,34 @@ public class CheckoutActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             MedicineModel model = list.get(position);
             String strength = model.getStrength();
-            if (!strength.isEmpty()) holder.name.setText(model.getName() + " (" + strength + ")");
-            else holder.name.setText(model.getName());
+            if (!strength.isEmpty())
+                holder.name.setText(model.getName() + " (" + strength + ")");
+            else
+                holder.name.setText(model.getName());
 
             holder.price.setText("₹" + String.format("%.2f", model.getDisplayPrice()));
             holder.desc.setVisibility(View.GONE);
             holder.btnAdd.setVisibility(View.GONE);
 
             String formattedName = model.getName().toLowerCase().replaceAll("\\s+", "").replaceAll("[^a-z0-9]", "");
-            int resId = holder.itemView.getResources().getIdentifier(formattedName, "drawable", holder.itemView.getContext().getPackageName());
-            if(resId != 0) holder.img.setImageResource(resId);
-            else holder.img.setImageResource(R.drawable.paracetamol);
+            int resId = holder.itemView.getResources().getIdentifier(formattedName, "drawable",
+                    holder.itemView.getContext().getPackageName());
+            if (resId != 0)
+                holder.img.setImageResource(resId);
+            else
+                holder.img.setImageResource(R.drawable.paracetamol);
         }
 
-        @Override public int getItemCount() { return list == null ? 0 : list.size(); }
+        @Override
+        public int getItemCount() {
+            return list == null ? 0 : list.size();
+        }
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView name, desc, price;
             Button btnAdd;
             android.widget.ImageView img;
+
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 name = itemView.findViewById(R.id.text_med_name);

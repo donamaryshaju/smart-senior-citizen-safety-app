@@ -4,6 +4,8 @@
 
     <!-- CRITICAL FIX: Added Internet Permission so Firebase works -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -53,6 +55,10 @@
             android:exported="false" />
 
         <!-- CRITICAL FIX: Registered the new Medical Activity -->
+        <activity
+            android:name=".activity.CreateRequestActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".activity.MedicalActivity"
             android:exported="false" />

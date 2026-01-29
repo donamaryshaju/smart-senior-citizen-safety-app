@@ -7,178 +7,296 @@
     android:background="#F5F7FA"
     tools:context=".activity.VolunteerDashboardActivity">
 
-    <!-- ================= HEADER ================= -->
-    <LinearLayout
+    <!-- ================= SCROLLABLE CONTENT ================= -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:paddingBottom="240dp" 
+        android:clipToPadding="false"
+        android:fillViewport="true">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:background="@drawable/gradient_header_background">
-
-            <!-- Logout Button -->
-            <TextView
-                android:id="@+id/text_welcome"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="72dp"
-                android:text="Welcome,"
-                android:textColor="@android:color/white"
-                android:textSize="20sp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/text_volunteer_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Hello, Volunteer"
-                android:textColor="@android:color/white"
-                android:textSize="26sp"
-                android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="@id/text_welcome"
-                app:layout_constraintTop_toBottomOf="@id/text_welcome" />
-
-            <Button
-                android:id="@+id/btn_logout"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="Logout"
-                android:textAllCaps="false"
-                android:textSize="14sp"
-                android:textColor="#FFFFFF"
-                android:backgroundTint="#EF5350"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/text_welcome"/>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- ================= CATEGORY SECTION ================= -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
             android:orientation="vertical">
 
-            <Button
-                android:id="@+id/btn_my_tasks"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:background="@drawable/gradient_header_background">
+
+                <!-- Logout Button -->
+                <TextView
+                    android:id="@+id/text_welcome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginTop="72dp"
+                    android:text="Welcome,"
+                    android:textColor="@android:color/white"
+                    android:textSize="20sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/text_volunteer_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Hello, Volunteer"
+                    android:textColor="@android:color/white"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="@id/text_welcome"
+                    app:layout_constraintTop_toBottomOf="@id/text_welcome" />
+
+                <TextView
+                    android:id="@+id/text_volunteer_phone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Phone: --"
+                    android:textColor="#E0E0E0"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="@id/text_welcome"
+                    app:layout_constraintTop_toBottomOf="@id/text_volunteer_name" />
+
+                <TextView
+                    android:id="@+id/text_volunteer_address"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginEnd="80dp" 
+                    android:text="Address: --"
+                    android:textColor="#E0E0E0"
+                    android:textSize="14sp"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    app:layout_constraintStart_toStartOf="@id/text_welcome"
+                    app:layout_constraintTop_toBottomOf="@id/text_volunteer_phone"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+                <Button
+                    android:id="@+id/btn_profile"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="Profile"
+                    android:textAllCaps="false"
+                    android:textSize="14sp"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#4CAF50"
+                    app:layout_constraintEnd_toStartOf="@id/btn_logout"
+                    app:layout_constraintTop_toTopOf="@id/btn_logout"
+                    app:layout_constraintBottom_toBottomOf="@id/btn_logout"/>
+
+                <Button
+                    android:id="@+id/btn_logout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="Logout"
+                    android:textAllCaps="false"
+                    android:textSize="14sp"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#EF5350"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/text_welcome"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+            
+            <!-- ================= ACTIVE MISSION CARD (Dynamic) ================= -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_active_mission"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="View My Accepted Tasks"
-                android:backgroundTint="#4CAF50"
-                android:textColor="#FFFFFF"
-                android:layout_marginBottom="16dp"/>
+                android:layout_margin="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="#E3F2FD"
+                android:visibility="gone"
+                tools:visibility="visible">
 
-            <TextView
-                android:id="@+id/txt_current_category"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="CURRENT MISSION"
+                        android:textSize="12sp"
+                        android:textColor="#1565C0"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.1"/>
+
+                    <TextView
+                        android:id="@+id/mission_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ON THE WAY"
+                        android:textSize="22sp"
+                        android:textColor="#1565C0"
+                        android:textStyle="bold"
+                        android:layout_marginTop="4dp"/>
+
+                    <TextView
+                        android:id="@+id/mission_senior_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Senior: John Doe"
+                        android:textSize="14sp"
+                        android:textColor="#555555"
+                        android:layout_marginTop="8dp"/>
+
+                    <TextView
+                        android:id="@+id/mission_location"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="123 Main St, New York"
+                        android:textSize="14sp"
+                        android:textColor="#555555"
+                        android:layout_marginTop="4dp"
+                        android:drawableStart="@android:drawable/ic_dialog_map"
+                        android:drawablePadding="8dp"/>
+
+                    <Button
+                        android:id="@+id/btn_mission_action"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="ARRIVED"
+                        android:backgroundTint="#1565C0"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginTop="16dp"/>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ================= CATEGORY SECTION ================= -->
+            <LinearLayout
+                android:id="@+id/container_categories"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Available Requests"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="#333333"
-                android:layout_marginBottom="12dp"/>
+                android:padding="16dp"
+                android:orientation="vertical">
 
-            <GridLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:columnCount="2"
-                android:useDefaultMargins="true">
+                <Button
+                    android:id="@+id/btn_my_tasks"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="View My Accepted Tasks"
+                    android:backgroundTint="#4CAF50"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginBottom="16dp"/>
 
-                <!-- Medical -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/card_medical"
-                    style="@style/CategoryCard">
+                <TextView
+                    android:id="@+id/txt_current_category"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Available Requests"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="12dp"/>
 
-                    <LinearLayout
-                        style="@style/CategoryLinearLayout"
-                        android:background="#E3F2FD">
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="2"
+                    android:useDefaultMargins="true">
 
-                        <ImageView
-                            style="@style/CategoryIcon"
-                            android:src="@drawable/ic_medical"
-                            app:tint="#1976D2"/>
+                    <!-- Medical -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/card_medical"
+                        style="@style/CategoryCard">
 
-                        <TextView
-                            style="@style/CategoryText"
-                            android:text="Medical"
-                            android:textColor="#1976D2"/>
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                        <LinearLayout
+                            style="@style/CategoryLinearLayout"
+                            android:background="#E3F2FD">
 
-                <!-- Grocery -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/card_grocery"
-                    style="@style/CategoryCard">
+                            <ImageView
+                                style="@style/CategoryIcon"
+                                android:src="@drawable/ic_medical"
+                                app:tint="#1976D2"/>
 
-                    <LinearLayout
-                        style="@style/CategoryLinearLayout"
-                        android:background="#E8F5E9">
+                            <TextView
+                                style="@style/CategoryText"
+                                android:text="Medical"
+                                android:textColor="#1976D2"/>
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
 
-                        <ImageView
-                            style="@style/CategoryIcon"
-                            android:src="@drawable/ic_grocery"
-                            app:tint="#2E7D32"/>
+                    <!-- Grocery -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/card_grocery"
+                        style="@style/CategoryCard">
 
-                        <TextView
-                            style="@style/CategoryText"
-                            android:text="Groceries"
-                            android:textColor="#2E7D32"/>
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                        <LinearLayout
+                            style="@style/CategoryLinearLayout"
+                            android:background="#E8F5E9">
 
-                <!-- Transport -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/card_transport"
-                    style="@style/CategoryCard">
+                            <ImageView
+                                style="@style/CategoryIcon"
+                                android:src="@drawable/ic_grocery"
+                                app:tint="#2E7D32"/>
 
-                    <LinearLayout
-                        style="@style/CategoryLinearLayout"
-                        android:background="#FFF3E0">
+                            <TextView
+                                style="@style/CategoryText"
+                                android:text="Groceries"
+                                android:textColor="#2E7D32"/>
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
 
-                        <ImageView
-                            style="@style/CategoryIcon"
-                            android:src="@drawable/ic_transport"
-                            app:tint="#EF6C00"/>
+                    <!-- Transport -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/card_transport"
+                        style="@style/CategoryCard">
 
-                        <TextView
-                            style="@style/CategoryText"
-                            android:text="Transport"
-                            android:textColor="#EF6C00"/>
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                        <LinearLayout
+                            style="@style/CategoryLinearLayout"
+                            android:background="#FFF3E0">
 
-                <!-- Home Care -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/card_homecare"
-                    style="@style/CategoryCard">
+                            <ImageView
+                                style="@style/CategoryIcon"
+                                android:src="@drawable/ic_transport"
+                                app:tint="#EF6C00"/>
 
-                    <LinearLayout
-                        style="@style/CategoryLinearLayout"
-                        android:background="#F3E5F5">
+                            <TextView
+                                style="@style/CategoryText"
+                                android:text="Transport"
+                                android:textColor="#EF6C00"/>
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
 
-                        <ImageView
-                            style="@style/CategoryIcon"
-                            android:src="@drawable/ic_home_care"
-                            app:tint="#6A1B9A"/>
+                    <!-- Home Care -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/card_homecare"
+                        style="@style/CategoryCard">
 
-                        <TextView
-                            style="@style/CategoryText"
-                            android:text="Home Care"
-                            android:textColor="#6A1B9A"/>
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                        <LinearLayout
+                            style="@style/CategoryLinearLayout"
+                            android:background="#F3E5F5">
 
-            </GridLayout>
+                            <ImageView
+                                style="@style/CategoryIcon"
+                                android:src="@drawable/ic_home_care"
+                                app:tint="#6A1B9A"/>
 
+                            <TextView
+                                style="@style/CategoryText"
+                                android:text="Home Care"
+                                android:textColor="#6A1B9A"/>
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                </GridLayout>
+
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <!-- ================= BOTTOM SHEET ================= -->
     <androidx.cardview.widget.CardView
