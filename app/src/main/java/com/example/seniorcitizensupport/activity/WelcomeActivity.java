@@ -20,6 +20,7 @@ public class WelcomeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_welcome);
 
         mAuth = FirebaseAuth.getInstance();
         fStore = FirebaseFirestore.getInstance();
@@ -27,26 +28,26 @@ public class WelcomeActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
         // ✅ If already logged in → redirect by role
-        if (currentUser != null) {
-            redirectUserByRole(currentUser.getUid());
-            return;
-        }
-
-        // Show welcome screen
-        setContentView(R.layout.activity_welcome);
+        /*
+         * USER REQUESTED TO DISABLE AUTO-LOGIN
+         * if (currentUser != null) {
+         * redirectUserByRole(currentUser.getUid());
+         * return;
+         * }
+         */
 
         Button loginButton = findViewById(R.id.button_login);
         Button registerButton = findViewById(R.id.button_register);
         Button guestButton = findViewById(R.id.button_continue_guest);
 
-        loginButton.setOnClickListener(v ->
-                startActivity(new Intent(WelcomeActivity.this, LoginActivity.class)));
+        loginButton.setOnClickListener(v -> startActivity(new Intent(WelcomeActivity.this, LoginActivity.class)));
 
-        registerButton.setOnClickListener(v ->
-                startActivity(new Intent(WelcomeActivity.this, RegisterActivity.class)));
+        registerButton.setOnClickListener(
+                v -> startActivity(new Intent(WelcomeActivity.this, RegistrationSelectionActivity.class)));
 
         guestButton.setOnClickListener(v -> {
-            Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
+            Intent intent = new Intent(WelcomeActivity.this, SeniorDashActivity.class);
+            intent.putExtra("GUEST_MODE", true);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
@@ -75,7 +76,7 @@ public class WelcomeActivity extends AppCompatActivity {
                             "Family Member".equalsIgnoreCase(role)) {
                         intent = new Intent(this, FamilyDashboardActivity.class);
                     } else {
-                        intent = new Intent(this, com.example.seniorcitizensupport.activity.MainActivity.class);
+                        intent = new Intent(this, SeniorDashActivity.class);
                     }
 
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -84,7 +85,7 @@ public class WelcomeActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Unable to load profile. Opening home.", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(this, com.example.seniorcitizensupport.activity.MainActivity.class));
+                    startActivity(new Intent(this, SeniorDashActivity.class));
                     finish();
                 });
     }

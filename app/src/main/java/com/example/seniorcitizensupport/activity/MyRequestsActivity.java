@@ -108,6 +108,7 @@ public class MyRequestsActivity extends BaseActivity {
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             RequestModel req = list.get(position);
+            String status = req.getStatus();
 
             if (holder.txtType != null)
                 holder.txtType.setText(req.getType());
@@ -115,7 +116,6 @@ public class MyRequestsActivity extends BaseActivity {
                 holder.txtDesc.setText(req.getDescription());
 
             if (holder.txtPriority != null) {
-                String status = req.getStatus();
                 holder.txtPriority.setText(status);
 
                 if ("Accepted".equals(status)) {
@@ -128,8 +128,34 @@ public class MyRequestsActivity extends BaseActivity {
             // Hide UI elements not relevant for the user viewing their own requests
             if (holder.btnAccept != null)
                 holder.btnAccept.setVisibility(View.GONE);
-            if (holder.txtName != null)
+
+            // Logic to show Volunteer Name if Request is active (Accepted, On The Way,
+            // Arrived, In Progress, Completed)
+            if (!Constants.STATUS_PENDING.equalsIgnoreCase(status)) {
+                if (req.getVolunteerId() != null && !req.getVolunteerId().isEmpty()) {
+                    holder.txtName.setVisibility(View.VISIBLE);
+                    holder.txtName.setText("Volunteer: Loading...");
+
+                    firestore.collection(Constants.KEY_COLLECTION_USERS)
+                            .document(req.getVolunteerId())
+                            .get()
+                            .addOnSuccessListener(snippet -> {
+                                String vName = snippet.getString(Constants.KEY_NAME);
+                                if (vName == null)
+                                    vName = snippet.getString("fullName");
+                                if (vName != null) {
+                                    holder.txtName.setText("Volunteer: " + vName);
+                                } else {
+                                    holder.txtName.setText("Volunteer: Assigned");
+                                }
+                            });
+                } else {
+                    holder.txtName.setVisibility(View.GONE);
+                }
+            } else {
+                // Pending
                 holder.txtName.setVisibility(View.GONE);
+            }
         }
 
         @Override
@@ -139,7 +165,7 @@ public class MyRequestsActivity extends BaseActivity {
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView txtType, txtDesc, txtPriority, txtName;
-            Button btnAccept;
+            Button btnAccept, btnCall;
 
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
@@ -148,6 +174,7 @@ public class MyRequestsActivity extends BaseActivity {
                 txtPriority = itemView.findViewById(R.id.req_priority);
                 txtName = itemView.findViewById(R.id.req_senior_name);
                 btnAccept = itemView.findViewById(R.id.btn_accept);
+                btnCall = itemView.findViewById(R.id.btn_call_volunteer);
             }
         }
     }

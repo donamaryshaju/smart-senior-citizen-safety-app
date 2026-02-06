@@ -28,6 +28,17 @@ public class RequestModel { // Fields that map to Firestore documents
         // Required public no-argument constructor
     }
 
+    public RequestModel(String userId, String type, String status, String priority, String description,
+            Timestamp timestamp, String location) {
+        this.userId = userId;
+        this.type = type;
+        this.status = status;
+        this.priority = priority;
+        this.description = description;
+        this.timestamp = timestamp;
+        this.location = location;
+    }
+
     // --- GETTERS and SETTERS for all fields ---
 
     public String getType() {

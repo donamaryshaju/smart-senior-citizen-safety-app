@@ -126,7 +126,7 @@ public class RegisterActivity extends BaseActivity {
                                     } else if (userType.equals(Constants.ROLE_FAMILY)) {
                                         intent = new Intent(RegisterActivity.this, FamilyDashboardActivity.class);
                                     } else {
-                                        intent = new Intent(RegisterActivity.this, MainActivity.class);
+                                        intent = new Intent(RegisterActivity.this, SeniorDashActivity.class);
                                     }
 
                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

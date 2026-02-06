@@ -30,7 +30,7 @@
 
         <!-- MAIN DASHBOARD (For Senior Citizens) -->
         <activity
-            android:name=".activity.MainActivity"
+            android:name=".activity.SeniorDashActivity"
             android:exported="false" />
 
         <!-- AUTHENTICATION ACTIVITIES -->
@@ -60,11 +60,43 @@
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
+            android:name=".activity.TransportSelectionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".activity.TransportFormActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
             android:name=".activity.MedicalActivity"
             android:exported="false" />
         <activity
-            android:name=".activity.CheckoutActivity"
+            android:name=".activity.MedicalSelectionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".activity.MedicalFormActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".activity.HomeCareSelectionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".activity.HomeCareFormActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".activity.TrackingActivity"
             android:exported="false" />
+        <activity
+            android:name=".activity.GrocerySelectionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".activity.GroceryFormActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
         <activity
             android:name=".activity.ProfileActivity"
@@ -111,6 +143,26 @@
             android:name=".activity.UserListActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".activity.RegistrationSelectionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.SeniorRegistrationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />  
+        <activity
+            android:name=".activity.VolunteerRegistrationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />  
+        <activity
+            android:name=".activity.FamilyRegistrationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />  
+        <activity
+            android:name=".activity.AdminRegistrationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />  
+            
     </application>
 
 </manifest>

@@ -53,7 +53,9 @@ dependencies {
     implementation(libs.firebase.auth) // Corrected line
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
+    implementation("com.google.android.gms:play-services-location:21.0.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
 }

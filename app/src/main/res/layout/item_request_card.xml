@@ -102,6 +102,19 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
             <Button
+                android:id="@+id/btn_call_volunteer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="#009688"
+                android:text="Call Volunteer"
+                android:textColor="#FFFFFF"
+                android:visibility="gone"
+                app:icon="@android:drawable/ic_menu_call"
+                app:cornerRadius="8dp"/>
+
+            <Button
                 android:id="@+id/btn_accept"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
