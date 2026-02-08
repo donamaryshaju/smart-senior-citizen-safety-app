@@ -1,3 +1,21 @@
 <resources>
     <string name="app_name">SeniorCitizenSupport</string>
+    <string name="title_buy_medicines">Buy Medicines</string>
+    <string name="header_order_method">How do you want to order?</string>
+    <string name="title_upload_prescription">Upload Prescription</string>
+    <string name="subtitle_upload_prescription">Take photo of prescription</string>
+    <string name="badge_recommended">RECOMMENDED</string>
+    <string name="title_voice_input">Tell Medicine Names</string>
+    <string name="subtitle_voice_input">Speak clearly into phone</string>
+    <string name="title_repeat_order">Repeat Last Order</string>
+    <string name="subtitle_repeat_order">Same as Dec 25</string>
+    <string name="action_view_list">View List →</string>
+    <string name="label_delivery_address">Delivery Address</string>
+    <string name="action_change">Change</string>
+    <string name="address_placeholder">Muriyamvelil H, Kuravilangad</string>
+    <string name="label_delivery_time">When do you need it?</string>
+    <string name="option_urgent">Urgent (2 hours)</string>
+    <string name="option_today_evening">Today Evening</string>
+    <string name="option_tomorrow_morning">Tomorrow Morning</string>
+    <string name="btn_submit_request">SUBMIT REQUEST</string>
 </resources>

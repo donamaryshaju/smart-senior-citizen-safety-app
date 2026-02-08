@@ -145,4 +145,14 @@ public class RequestModel { // Fields that map to Firestore documents
     public void setDocumentId(String documentId) {
         this.documentId = documentId;
     }
+
+    private String imageUrl;
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 }

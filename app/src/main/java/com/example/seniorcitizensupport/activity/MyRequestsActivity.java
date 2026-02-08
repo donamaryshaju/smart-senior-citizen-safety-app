@@ -1,5 +1,6 @@
 package com.example.seniorcitizensupport.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -115,6 +116,9 @@ public class MyRequestsActivity extends BaseActivity {
             if (holder.txtDesc != null)
                 holder.txtDesc.setText(req.getDescription());
 
+            if (holder.txtLocation != null)
+                holder.txtLocation.setText(req.getLocation());
+
             if (holder.txtPriority != null) {
                 holder.txtPriority.setText(status);
 
@@ -125,13 +129,37 @@ public class MyRequestsActivity extends BaseActivity {
                 }
             }
 
+            if (holder.txtDateTime != null && req.getTimestamp() != null) {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a",
+                        java.util.Locale.getDefault());
+                holder.txtDateTime.setText(sdf.format(req.getTimestamp().toDate()));
+            }
+
             // Hide UI elements not relevant for the user viewing their own requests
             if (holder.btnAccept != null)
                 holder.btnAccept.setVisibility(View.GONE);
 
             // Logic to show Volunteer Name if Request is active (Accepted, On The Way,
             // Arrived, In Progress, Completed)
-            if (!Constants.STATUS_PENDING.equalsIgnoreCase(status)) {
+            if (!Constants.STATUS_PENDING.equalsIgnoreCase(status) && !"Rejected".equalsIgnoreCase(status)
+                    && !"Cancelled".equalsIgnoreCase(status)) {
+
+                // Show Track Button for active requests
+                if (!"Completed".equalsIgnoreCase(status) && holder.btnTrack != null) {
+                    holder.btnTrack.setVisibility(View.VISIBLE);
+                    holder.btnTrack.setOnClickListener(v -> {
+                        Intent intent = new Intent(holder.itemView.getContext(), TrackingActivity.class);
+                        intent.putExtra("STATUS", req.getStatus());
+                        intent.putExtra("TYPE", req.getType());
+                        // Pass volunteer info if available
+                        if (holder.txtName.getText().toString().contains("Volunteer:")) {
+                            String volInfo = holder.txtName.getText().toString().replace("Volunteer: ", "");
+                            intent.putExtra("VOLUNTEER_NAME", volInfo);
+                        }
+                        holder.itemView.getContext().startActivity(intent);
+                    });
+                }
+
                 if (req.getVolunteerId() != null && !req.getVolunteerId().isEmpty()) {
                     holder.txtName.setVisibility(View.VISIBLE);
                     holder.txtName.setText("Volunteer: Loading...");
@@ -143,10 +171,34 @@ public class MyRequestsActivity extends BaseActivity {
                                 String vName = snippet.getString(Constants.KEY_NAME);
                                 if (vName == null)
                                     vName = snippet.getString("fullName");
+                                String vAddress = snippet.getString("address");
+                                String vPhone = snippet.getString("phone"); // Fetch Phone
+
                                 if (vName != null) {
                                     holder.txtName.setText("Volunteer: " + vName);
+
+                                    // Create final copies for lambda
+                                    final String finalName = vName;
+                                    final String finalPhone = vPhone;
+
+                                    // Update Track Intent with real phone/name if clicked after load
+                                    if (holder.btnTrack != null) {
+                                        holder.btnTrack.setOnClickListener(v -> {
+                                            Intent intent = new Intent(holder.itemView.getContext(),
+                                                    TrackingActivity.class);
+                                            intent.putExtra("STATUS", req.getStatus());
+                                            intent.putExtra("TYPE", req.getType());
+                                            intent.putExtra("VOLUNTEER_NAME", finalName); // Use final local
+                                            intent.putExtra("VOLUNTEER_PHONE", finalPhone);
+                                            holder.itemView.getContext().startActivity(intent);
+                                        });
+                                    }
                                 } else {
                                     holder.txtName.setText("Volunteer: Assigned");
+                                }
+
+                                if (vAddress != null && !vAddress.isEmpty() && holder.txtLocation != null) {
+                                    holder.txtLocation.setText(vAddress); // Show Volunteer Address
                                 }
                             });
                 } else {
@@ -155,6 +207,8 @@ public class MyRequestsActivity extends BaseActivity {
             } else {
                 // Pending
                 holder.txtName.setVisibility(View.GONE);
+                if (holder.btnTrack != null)
+                    holder.btnTrack.setVisibility(View.GONE);
             }
         }
 
@@ -164,8 +218,8 @@ public class MyRequestsActivity extends BaseActivity {
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView txtType, txtDesc, txtPriority, txtName;
-            Button btnAccept, btnCall;
+            TextView txtType, txtDesc, txtPriority, txtName, txtLocation, txtDateTime;
+            Button btnAccept, btnCall, btnTrack;
 
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
@@ -173,8 +227,11 @@ public class MyRequestsActivity extends BaseActivity {
                 txtDesc = itemView.findViewById(R.id.req_desc);
                 txtPriority = itemView.findViewById(R.id.req_priority);
                 txtName = itemView.findViewById(R.id.req_senior_name);
+                txtLocation = itemView.findViewById(R.id.req_location); // Bind Location
+                txtDateTime = itemView.findViewById(R.id.req_date_time); // Bind Date Time
                 btnAccept = itemView.findViewById(R.id.btn_accept);
                 btnCall = itemView.findViewById(R.id.btn_call_volunteer);
+                btnTrack = itemView.findViewById(R.id.btn_track); // Bind Track Button
             }
         }
     }

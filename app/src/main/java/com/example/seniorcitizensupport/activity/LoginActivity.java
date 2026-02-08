@@ -58,11 +58,14 @@ public class LoginActivity extends BaseActivity {
         setContentView(R.layout.activity_login); // FIX: Load UI first to avoid blank screen
 
         // Check if user is already signed in (Firebase persistence)
-        if (auth.getCurrentUser() != null) {
-            showProgressDialog("Resuming session..."); // Show feedback
-            checkUserRole(auth.getCurrentUser().getUid());
-            return;
-        }
+        /*
+         * AUTO-LOGIN DISABLED BY USER REQUEST
+         * if (auth.getCurrentUser() != null) {
+         * showProgressDialog("Resuming session..."); // Show feedback
+         * checkUserRole(auth.getCurrentUser().getUid());
+         * return;
+         * }
+         */
 
         try {
             sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);

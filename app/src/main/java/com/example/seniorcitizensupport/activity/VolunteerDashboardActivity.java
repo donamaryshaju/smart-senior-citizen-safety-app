@@ -502,6 +502,23 @@ public class VolunteerDashboardActivity extends BaseActivity {
                         });
             }
 
+            // Image Logic
+            if (req.getImageUrl() != null && !req.getImageUrl().isEmpty()) {
+                holder.imgReq.setVisibility(View.VISIBLE);
+                com.bumptech.glide.Glide.with(context)
+                        .load(req.getImageUrl())
+                        .placeholder(android.R.drawable.ic_menu_gallery)
+                        .into(holder.imgReq);
+
+                // Optional: Click to view full screen (simple implementation for now)
+                holder.imgReq.setOnClickListener(v -> {
+                    // In a real app, open a dialog or new activity
+                    Toast.makeText(context, "Prescription Image", Toast.LENGTH_SHORT).show();
+                });
+            } else {
+                holder.imgReq.setVisibility(View.GONE);
+            }
+
             // Button Logic - Dynamic State Machine
             holder.btnAccept.setVisibility(View.VISIBLE);
 
@@ -585,6 +602,7 @@ public class VolunteerDashboardActivity extends BaseActivity {
 
         static class ViewHolder extends RecyclerView.ViewHolder {
             TextView txtType, txtDesc, txtPriority, txtName, txtLocation;
+            android.widget.ImageView imgReq;
             Button btnAccept;
 
             ViewHolder(@NonNull View itemView) {
@@ -594,6 +612,7 @@ public class VolunteerDashboardActivity extends BaseActivity {
                 txtPriority = itemView.findViewById(R.id.req_priority);
                 txtName = itemView.findViewById(R.id.req_senior_name);
                 txtLocation = itemView.findViewById(R.id.req_location);
+                imgReq = itemView.findViewById(R.id.req_image);
                 btnAccept = itemView.findViewById(R.id.btn_accept);
             }
         }
