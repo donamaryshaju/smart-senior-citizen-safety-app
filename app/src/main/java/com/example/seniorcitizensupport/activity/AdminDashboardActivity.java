@@ -164,6 +164,10 @@ public class AdminDashboardActivity extends BaseActivity {
                 for (DocumentSnapshot doc : value.getDocuments()) {
                     RequestModel req = doc.toObject(RequestModel.class);
                     if (req != null) {
+                        // FILTER: Hide requests that are Auto-Dispatched (sent directly to volunteers)
+                        if (req.getIsAutoDispatch()) {
+                            continue;
+                        }
                         req.setDocumentId(doc.getId());
                         requestList.add(req);
                     }
@@ -290,6 +294,16 @@ public class AdminDashboardActivity extends BaseActivity {
             holder.txtLocation.setText(req.getLocation());
             holder.txtPriority.setText("Status: " + req.getStatus() + " | " + req.getPriority());
 
+            // Date & Time Binding
+            if (req.getTimestamp() != null) {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd MMM, hh:mm a",
+                        java.util.Locale.getDefault());
+                holder.txtDate.setText(sdf.format(req.getTimestamp().toDate()));
+                holder.txtDate.setVisibility(View.VISIBLE);
+            } else {
+                holder.txtDate.setVisibility(View.GONE);
+            }
+
             // SOS / High Priority Highlight
             if (Constants.TYPE_SOS.equalsIgnoreCase(req.getType()) || "High".equalsIgnoreCase(req.getPriority())) {
                 holder.cardView.setStrokeColor(0xFFFF0000); // Red
@@ -349,7 +363,7 @@ public class AdminDashboardActivity extends BaseActivity {
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {
-            TextView txtType, txtDesc, txtPriority, txtName, txtLocation;
+            TextView txtType, txtDesc, txtPriority, txtName, txtLocation, txtDate;
             Button btnAccept, btnAssign;
             com.google.android.material.card.MaterialCardView cardView;
 
@@ -360,6 +374,7 @@ public class AdminDashboardActivity extends BaseActivity {
                 txtPriority = itemView.findViewById(R.id.req_priority);
                 txtName = itemView.findViewById(R.id.req_senior_name);
                 txtLocation = itemView.findViewById(R.id.req_location);
+                txtDate = itemView.findViewById(R.id.req_date_time);
                 btnAccept = itemView.findViewById(R.id.btn_accept);
                 btnAssign = itemView.findViewById(R.id.btn_assign);
 

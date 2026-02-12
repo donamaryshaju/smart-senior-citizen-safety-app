@@ -1,7 +1,8 @@
 package com.example.seniorcitizensupport.activity;
 
 import android.app.Dialog;
-import android.content.Intent;import android.graphics.Color;
+import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.Editable;
@@ -73,13 +74,17 @@ public class MedicalActivity extends AppCompatActivity {
 
         searchBar.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filter(s.toString());
             }
+
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         btnCheckout.setOnClickListener(v -> goToCheckoutPage());
@@ -96,10 +101,11 @@ public class MedicalActivity extends AppCompatActivity {
     }
 
     private int getMedicineImageResource(String medicineName) {
-        if (medicineName == null) return R.drawable.paracetamol;
+        if (medicineName == null)
+            return R.drawable.ic_medical;
         String formattedName = medicineName.toLowerCase().replaceAll("\\s+", "").replaceAll("[^a-z0-9]", "");
         int resId = getResources().getIdentifier(formattedName, "drawable", getPackageName());
-        return (resId != 0) ? resId : R.drawable.paracetamol;
+        return (resId != 0) ? resId : R.drawable.ic_medical;
     }
 
     private void showMedicineDetails(MedicineModel model) {
@@ -159,7 +165,8 @@ public class MedicalActivity extends AppCompatActivity {
                             int stock = 0;
                             if (doc.contains("stock") && doc.get("stock") != null) {
                                 Long s = doc.getLong("stock");
-                                if (s != null) stock = s.intValue();
+                                if (s != null)
+                                    stock = s.intValue();
                             }
 
                             boolean available = true;
@@ -171,7 +178,9 @@ public class MedicalActivity extends AppCompatActivity {
                             if (doc.contains("variants") && doc.get("variants") != null) {
                                 try {
                                     variants = (List<Map<String, Object>>) doc.get("variants");
-                                } catch (Exception e) { variants = null; }
+                                } catch (Exception e) {
+                                    variants = null;
+                                }
                             }
 
                             if (name != null) {
@@ -183,21 +192,24 @@ public class MedicalActivity extends AppCompatActivity {
                                         }
                                         List<Map<String, Object>> singleVariantList = new ArrayList<>();
                                         singleVariantList.add(variant);
-                                        allMedicines.add(new MedicineModel(name, vPrice, desc, stock, available, singleVariantList, docId));
+                                        allMedicines.add(new MedicineModel(name, vPrice, desc, stock, available,
+                                                singleVariantList, docId));
                                     }
                                 } else {
                                     double price = 0.0;
                                     if (doc.contains("price") && doc.get("price") != null) {
                                         price = doc.getDouble("price");
                                     }
-                                    allMedicines.add(new MedicineModel(name, price, desc, stock, available, null, docId));
+                                    allMedicines
+                                            .add(new MedicineModel(name, price, desc, stock, available, null, docId));
                                 }
                             }
                         }
                         filter("");
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(MedicalActivity.this, "Error loading medicines", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast
+                        .makeText(MedicalActivity.this, "Error loading medicines", Toast.LENGTH_SHORT).show());
     }
 
     private void filter(String text) {
@@ -231,7 +243,7 @@ public class MedicalActivity extends AppCompatActivity {
         } else {
             layoutCheckout.setVisibility(View.VISIBLE);
             double totalCost = 0;
-            for(MedicineModel m : cartList) {
+            for (MedicineModel m : cartList) {
                 totalCost += m.getDisplayPrice();
             }
             textCartCount.setText(cartList.size() + " Items | Total: ₹" + String.format("%.2f", totalCost));
@@ -305,7 +317,9 @@ public class MedicalActivity extends AppCompatActivity {
         }
 
         @Override
-        public int getItemCount() { return (list != null) ? list.size() : 0; }
+        public int getItemCount() {
+            return (list != null) ? list.size() : 0;
+        }
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView name, desc, price;

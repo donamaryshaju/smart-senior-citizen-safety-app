@@ -270,7 +270,7 @@ public class CheckoutActivity extends AppCompatActivity {
             if (resId != 0)
                 holder.img.setImageResource(resId);
             else
-                holder.img.setImageResource(R.drawable.paracetamol);
+                holder.img.setImageResource(R.drawable.ic_medical);
         }
 
         @Override

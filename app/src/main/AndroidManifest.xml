@@ -143,6 +143,11 @@
             android:name=".activity.GroceryRequestActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".activity.MedicalEmergencyActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
 
 
 
@@ -185,7 +190,20 @@
             android:name=".activity.BuyMedicineActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-            
+
+        <!-- Doctor Assistance Activities -->
+        <activity
+            android:name=".activity.DoctorAppointmentActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".activity.HospitalAccompanimentActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity android:name=".activity.DoctorHomeVisitActivity" android:exported="false" />
+        <activity android:name=".activity.GroceryProvisionActivity" android:exported="false" />
+
     </application>
 
 </manifest>
+```

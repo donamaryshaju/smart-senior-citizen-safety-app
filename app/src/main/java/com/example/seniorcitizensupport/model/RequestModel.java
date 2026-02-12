@@ -147,6 +147,7 @@ public class RequestModel { // Fields that map to Firestore documents
     }
 
     private String imageUrl;
+    private boolean isAutoDispatch;
 
     public String getImageUrl() {
         return imageUrl;
@@ -154,5 +155,15 @@ public class RequestModel { // Fields that map to Firestore documents
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    @com.google.firebase.firestore.PropertyName("isAutoDispatch")
+    public boolean getIsAutoDispatch() {
+        return isAutoDispatch;
+    }
+
+    @com.google.firebase.firestore.PropertyName("isAutoDispatch")
+    public void setIsAutoDispatch(boolean autoDispatch) {
+        isAutoDispatch = autoDispatch;
     }
 }

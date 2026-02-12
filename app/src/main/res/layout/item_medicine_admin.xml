@@ -21,7 +21,7 @@
             android:id="@+id/img_medicine"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/paracetamol"
+            android:src="@drawable/ic_medical"
             android:scaleType="centerCrop"/>
 
         <!-- Text Info -->

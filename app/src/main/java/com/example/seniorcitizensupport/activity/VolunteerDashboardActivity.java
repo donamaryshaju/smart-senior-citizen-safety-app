@@ -316,9 +316,22 @@ public class VolunteerDashboardActivity extends BaseActivity {
         if (firestoreListener != null)
             firestoreListener.remove();
 
-        Query query = firestore.collection(Constants.KEY_COLLECTION_REQUESTS)
-                .whereEqualTo("type", category)
-                .whereEqualTo("status", Constants.STATUS_PENDING);
+        Query query;
+        if (Constants.TYPE_MEDICAL.equals(category)) {
+            // Include all medical sub-types
+            query = firestore.collection(Constants.KEY_COLLECTION_REQUESTS)
+                    .whereIn("type", java.util.Arrays.asList(
+                            Constants.TYPE_MEDICAL,
+                            "Medical Emergency",
+                            "Doctor Appointment",
+                            "Hospital Accompaniment",
+                            "Doctor Home Visit"))
+                    .whereEqualTo("status", Constants.STATUS_PENDING);
+        } else {
+            query = firestore.collection(Constants.KEY_COLLECTION_REQUESTS)
+                    .whereEqualTo("type", category)
+                    .whereEqualTo("status", Constants.STATUS_PENDING);
+        }
 
         firestoreListener = query.addSnapshotListener((value, error) -> {
             if (error != null) {
@@ -461,6 +474,15 @@ public class VolunteerDashboardActivity extends BaseActivity {
                     : "No location provided";
             holder.txtLocation.setText(location);
 
+            // Date & Time Binding
+            if (req.getTimestamp() != null) {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault());
+                holder.txtDate.setText(sdf.format(req.getTimestamp().toDate()));
+                holder.txtDate.setVisibility(View.VISIBLE);
+            } else {
+                holder.txtDate.setVisibility(View.GONE);
+            }
+
             // Show description or items count
             String description = req.getDescription();
             if (description != null && !description.trim().isEmpty()) {
@@ -567,17 +589,37 @@ public class VolunteerDashboardActivity extends BaseActivity {
         }
 
         private void acceptRequest(RequestModel req, String volunteerId) {
-            fStore.collection(Constants.KEY_COLLECTION_REQUESTS).document(req.getDocumentId())
-                    .update("status", Constants.STATUS_ACCEPTED, "volunteerId", volunteerId)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(context, "Request Accepted", Toast.LENGTH_SHORT).show();
-                        // Notify Senior
-                        com.example.seniorcitizensupport.utils.NotificationHelper.sendNotification(
-                                req.getUserId(),
-                                "Request Accepted",
-                                "A volunteer has accepted your request.");
-                    })
-                    .addOnFailureListener(e -> Toast.makeText(context, "Error accepting", Toast.LENGTH_SHORT).show());
+            final com.google.firebase.firestore.DocumentReference docRef = fStore
+                    .collection(Constants.KEY_COLLECTION_REQUESTS).document(req.getDocumentId());
+
+            fStore.runTransaction(transaction -> {
+                com.google.firebase.firestore.DocumentSnapshot snapshot = transaction.get(docRef);
+                String currentStatus = snapshot.getString("status");
+
+                if (Constants.STATUS_PENDING.equals(currentStatus)) {
+                    transaction.update(docRef, "status", Constants.STATUS_ACCEPTED);
+                    transaction.update(docRef, "volunteerId", volunteerId);
+                    return null; // Success
+                } else {
+                    throw new com.google.firebase.firestore.FirebaseFirestoreException(
+                            "Request already taken",
+                            com.google.firebase.firestore.FirebaseFirestoreException.Code.ABORTED);
+                }
+            }).addOnSuccessListener(result -> {
+                Toast.makeText(context, "Request Accepted Successfully!", Toast.LENGTH_SHORT).show();
+                // Notify Senior
+                com.example.seniorcitizensupport.utils.NotificationHelper.sendNotification(
+                        req.getUserId(),
+                        "Request Accepted",
+                        "A volunteer has accepted your request.");
+
+            }).addOnFailureListener(e -> {
+                if (e instanceof com.google.firebase.firestore.FirebaseFirestoreException) {
+                    Toast.makeText(context, "Too late! Request already taken.", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(context, "Error accepting: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         }
 
         private void updateStatus(RequestModel req, String newStatus, String notificationMsg) {
@@ -601,7 +643,7 @@ public class VolunteerDashboardActivity extends BaseActivity {
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {
-            TextView txtType, txtDesc, txtPriority, txtName, txtLocation;
+            TextView txtType, txtDesc, txtPriority, txtName, txtLocation, txtDate;
             android.widget.ImageView imgReq;
             Button btnAccept;
 
@@ -612,6 +654,7 @@ public class VolunteerDashboardActivity extends BaseActivity {
                 txtPriority = itemView.findViewById(R.id.req_priority);
                 txtName = itemView.findViewById(R.id.req_senior_name);
                 txtLocation = itemView.findViewById(R.id.req_location);
+                txtDate = itemView.findViewById(R.id.req_date_time);
                 imgReq = itemView.findViewById(R.id.req_image);
                 btnAccept = itemView.findViewById(R.id.btn_accept);
             }
