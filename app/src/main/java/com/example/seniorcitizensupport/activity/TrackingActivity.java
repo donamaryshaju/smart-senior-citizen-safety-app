@@ -14,13 +14,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.seniorcitizensupport.Constants;
 import com.example.seniorcitizensupport.R;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.seniorcitizensupport.BaseActivity;
 
-public class TrackingActivity extends AppCompatActivity {
+public class TrackingActivity extends BaseActivity {
 
     private TextView txtEta, txtVolunteerName;
     private Button btnCall;
     private ImageView btnBack;
     private String volunteerPhone;
+
+    private com.google.firebase.firestore.ListenerRegistration registration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +73,59 @@ public class TrackingActivity extends AppCompatActivity {
         updateTimeline(status);
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        String requestId = getIntent().getStringExtra("REQUEST_ID");
+        if (requestId != null) {
+            startListening(requestId);
+        }
+    }
+
+    private void startListening(String requestId) {
+        registration = firestore.collection(Constants.KEY_COLLECTION_REQUESTS)
+                .document(requestId)
+                .addSnapshotListener((snapshot, e) -> {
+                    if (e != null)
+                        return;
+                    if (snapshot != null && snapshot.exists()) {
+                        String status = snapshot.getString("status");
+                        String volId = snapshot.getString("volunteerId");
+
+                        updateTimeline(status);
+
+                        if (volId != null && !volId.isEmpty()) {
+                            fetchVolunteerDetails(volId);
+                        }
+                    }
+                });
+    }
+
+    private void fetchVolunteerDetails(String volId) {
+        firestore.collection(Constants.KEY_COLLECTION_USERS).document(volId).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String name = doc.getString("name");
+                        if (name == null)
+                            name = doc.getString("fName");
+                        volunteerPhone = doc.getString("phone");
+
+                        txtVolunteerName.setText("Volunteer: " + (name != null ? name : "Assigned"));
+                        btnCall.setEnabled(true);
+                        btnCall.setText("CALL VOLUNTEER");
+                        btnCall.setBackgroundTintList(
+                                getResources().getColorStateList(android.R.color.holo_green_dark));
+                    }
+                });
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (registration != null)
+            registration.remove();
+    }
+
     private void updateTimeline(String status) {
         TextView stepAccepted = findViewById(R.id.step_accepted);
         View line1 = findViewById(R.id.line_1);
@@ -102,10 +158,11 @@ public class TrackingActivity extends AppCompatActivity {
 
         stepAccepted.setTextColor(activeColor); // Always active if here
 
-        if (status.equalsIgnoreCase("On The Way")) {
+        if (status.equalsIgnoreCase("On The Way") || status.equalsIgnoreCase("On the way")) {
             line1.setBackgroundColor(activeColor);
             stepOnWay.setTextColor(activeColor);
-        } else if (status.equalsIgnoreCase("Arrived") || status.equalsIgnoreCase("In Progress")) {
+        } else if (status.equalsIgnoreCase("Arrived") || status.equalsIgnoreCase("In Progress")
+                || status.equalsIgnoreCase("Service in progress")) {
             line1.setBackgroundColor(activeColor);
             stepOnWay.setTextColor(activeColor);
             line2.setBackgroundColor(activeColor);
@@ -121,7 +178,4 @@ public class TrackingActivity extends AppCompatActivity {
             txtEta.setText("Service Completed");
         }
     }
-
-    // If we had the Request ID, we could fetch real-time updates here using
-    // addSnapshotListener
 }

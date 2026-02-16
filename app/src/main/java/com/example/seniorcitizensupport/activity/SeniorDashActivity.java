@@ -40,8 +40,6 @@ public class SeniorDashActivity extends BaseActivity {
     private View btnProfile, btnNotifications;
 
     // Active Banner
-    private MaterialCardView cardActiveBanner;
-    private TextView txtActiveType, txtActiveStatus, txtActiveETA, btnViewActiveDetails;
 
     // Direct Actions
     private MaterialCardView cardMedical, cardTransport, cardHomeCare, cardGrocery;
@@ -106,13 +104,7 @@ public class SeniorDashActivity extends BaseActivity {
         btnProfile = findViewById(R.id.layout_profile);
         btnNotifications = findViewById(R.id.layout_notifications);
 
-        // Active Banner
-        cardActiveBanner = findViewById(R.id.card_active_request);
-        cardActiveBanner.setVisibility(View.GONE); // Ensure hidden by default
-        txtActiveType = findViewById(R.id.text_active_type);
-        txtActiveStatus = findViewById(R.id.text_active_status);
-        txtActiveETA = findViewById(R.id.text_active_eta);
-        btnViewActiveDetails = findViewById(R.id.btn_view_active_details);
+        // Active Banner Removed per user request
 
         // Actions
         btnSOS = findViewById(R.id.btn_sos_floating);
@@ -179,106 +171,6 @@ public class SeniorDashActivity extends BaseActivity {
                     txtWelcome.setText("Hello, Error");
                     Toast.makeText(this, "Profile Load Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
-    }
-
-    // --- MOCK LOGIC FOR ACTIVE REQUEST (Replace with real refined query) ---
-    private void loadActiveRequest() {
-        if ("GUEST".equals(userId))
-            return;
-
-        // Fetch latest requests that are NOT completed/rejected/cancelled
-        firestore.collection(Constants.KEY_COLLECTION_REQUESTS)
-                .whereEqualTo("userId", userId)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .limit(10) // Fetch a few to filter locally
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!queryDocumentSnapshots.isEmpty()) {
-                        DocumentSnapshot prioritizedDoc = null;
-
-                        // Default to the first one (most recent)
-                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                            String status = doc.getString("status");
-
-                            // Filter out finished requests
-                            if (status != null && !status.equalsIgnoreCase("Completed")
-                                    && !status.equalsIgnoreCase("Rejected") && !status.equalsIgnoreCase("Cancelled")) {
-
-                                // Prioritize accepted/active requests over pending ones
-                                if ("Accepted".equalsIgnoreCase(status) || "On The Way".equalsIgnoreCase(status)
-                                        || "Arrived".equalsIgnoreCase(status)
-                                        || "In Progress".equalsIgnoreCase(status)) {
-                                    prioritizedDoc = doc;
-                                    break; // Found high priority active request, use it immediately
-                                }
-
-                                // Keep the first valid (most recent) request as fallback if no high priority
-                                // found
-                                if (prioritizedDoc == null) {
-                                    prioritizedDoc = doc;
-                                }
-                            }
-                        }
-
-                        if (prioritizedDoc != null) {
-                            showActiveBanner(prioritizedDoc);
-                            return;
-                        }
-                    }
-                    cardActiveBanner.setVisibility(View.GONE);
-                });
-    }
-
-    private void showActiveBanner(DocumentSnapshot doc) {
-        cardActiveBanner.setVisibility(View.VISIBLE);
-        String type = doc.getString("type");
-        String status = doc.getString("status");
-        String volunteerId = doc.getString("volunteerId");
-
-        txtActiveType.setText(type);
-        txtActiveStatus.setText("Status: " + status);
-
-        if ("Accepted".equalsIgnoreCase(status) || "Assigned".equalsIgnoreCase(status)) {
-            txtActiveETA.setText("Volunteer Assigned");
-        } else {
-            txtActiveETA.setText("Waiting for Volunteer...");
-        }
-
-        // Default click listener (in case volunteer fetch fails or not assigned yet)
-        btnViewActiveDetails.setOnClickListener(v -> {
-            Intent intent = new Intent(SeniorDashActivity.this, TrackingActivity.class);
-            intent.putExtra("STATUS", status);
-            startActivity(intent);
-        });
-
-        // Fetch Volunteer Details if assigned
-        if (volunteerId != null && !volunteerId.isEmpty()) {
-            firestore.collection(Constants.KEY_COLLECTION_USERS).document(volunteerId)
-                    .get()
-                    .addOnSuccessListener(volDoc -> {
-                        if (volDoc.exists()) {
-                            String volName = volDoc.getString("name");
-                            if (volName == null)
-                                volName = volDoc.getString("fName"); // Fallback
-                            String volPhone = volDoc.getString("phone");
-
-                            String finalVolName = (volName != null) ? volName : "Volunteer";
-                            String finalVolPhone = volPhone;
-
-                            // Update text to show volunteer found
-                            txtActiveETA.setText("Assigned to: " + finalVolName);
-
-                            // Update click listener with real data
-                            btnViewActiveDetails.setOnClickListener(v -> {
-                                Intent intent = new Intent(SeniorDashActivity.this, TrackingActivity.class);
-                                intent.putExtra("STATUS", status);
-                                intent.putExtra("VOLUNTEER_NAME", finalVolName);
-                                intent.putExtra("VOLUNTEER_PHONE", finalVolPhone);
-                                startActivity(intent);
-                            });
-                        }
-                    });
-        }
     }
 
     private void loadRecentRequests() {

@@ -109,6 +109,10 @@
             android:name=".activity.TrackingActivity"
             android:exported="false" />
         <activity
+            android:name=".activity.VolunteerSelectionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
             android:name=".activity.GrocerySelectionActivity"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />

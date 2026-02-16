@@ -40,7 +40,7 @@
                 android:layout_marginStart="16dp"/>
         </LinearLayout>
 
-        <!-- COMMON SECTIONS (Address) -->
+        <!-- ADDRESS SECTION -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -55,15 +55,15 @@
             android:layout_height="50dp"
             android:background="@drawable/rounded_input_background"
             android:hint="Fetching your location..."
+            android:inputType="textPostalAddress"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:drawableStart="@android:drawable/ic_menu_mylocation"
+            android:drawableStart="@drawable/ic_location_on"
             android:drawablePadding="8dp"
             android:drawableTint="#0288D1"
             android:layout_marginBottom="20dp"/>
 
         <TextView
-            android:id="@+id/label_destination"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Drop-off Destination"
@@ -76,113 +76,201 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:background="@drawable/rounded_input_background"
-            android:hint="Enter Hospital or Address"
+            android:hint="Enter Destination Address"
+            android:inputType="textPostalAddress"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
+            android:drawableStart="@drawable/ic_location_pin"
+            android:drawablePadding="8dp"
+            android:drawableTint="#F44336"
             android:layout_marginBottom="20dp"/>
 
+        <!-- TRIP TYPE -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trip Type"
+            android:textColor="#555555"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
 
-        <!-- DYNAMIC SECTION: AMBULANCE -->
+        <RadioGroup
+            android:id="@+id/radio_group_trip_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="20dp">
+
+            <RadioButton
+                android:id="@+id/radio_one_way"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="One-way"
+                android:checked="true"/>
+
+            <RadioButton
+                android:id="@+id/radio_round_trip"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Round-trip"/>
+        </RadioGroup>
+
+        <!-- DATE & TIME (Always visible for clarity, or user specific) -->
         <LinearLayout
-            android:id="@+id/group_ambulance_fields"
+            android:id="@+id/layout_date_time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:visibility="gone">
+            android:visibility="gone" 
+            tools:visibility="visible">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Emergency Level"
-                android:textColor="#D32F2F"
+                android:text="Date &amp; Time"
+                android:textColor="#555555"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"/>
-
-            <Spinner
-                android:id="@+id/spinner_emergency_level"
+            
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@drawable/rounded_input_background"
-                android:layout_marginBottom="20dp"/>
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="20dp">
+                
+                <EditText
+                    android:id="@+id/input_date"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="1"
+                    android:focusable="false"
+                    android:background="@drawable/rounded_input_background"
+                    android:hint="Select Date"
+                    android:paddingStart="16dp"
+                    android:layout_marginEnd="8dp"/>
+
+                <EditText
+                    android:id="@+id/input_time"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="1"
+                    android:focusable="false"
+                    android:background="@drawable/rounded_input_background"
+                    android:hint="Select Time"
+                    android:paddingStart="16dp"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- DYNAMIC SECTION: WHEELCHAIR -->
+        <!-- SPECIAL REQUIREMENTS -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Special Requirements"
+            android:textColor="#555555"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
         <LinearLayout
             android:id="@+id/group_wheelchair_fields"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:visibility="gone">
-            
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Assistance Needed"
-                android:textColor="#388E3C"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
+            android:visibility="visible">
 
             <CheckBox
-                android:id="@+id/check_lift"
-                android:layout_width="wrap_content"
+                android:id="@+id/check_wheelchair_needed"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Need hydraulic lift / ramp"/>
-            
-            <CheckBox
-                android:id="@+id/check_stairs"
-                android:layout_width="wrap_content"
+                android:text="I need a Wheelchair Accessible Vehicle"
+                android:textStyle="bold"
+                android:textColor="#388E3C"/>
+
+            <LinearLayout
+                android:id="@+id/layout_wheelchair_details"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Driver must help with stairs"/>
-            
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:paddingStart="32dp">
+
+                <CheckBox
+                    android:id="@+id/check_lift"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Need hydraulic lift / ramp"/>
+
+                <CheckBox
+                    android:id="@+id/check_stairs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Driver must help with stairs"/>
+            </LinearLayout>
+
             <EditText
                 android:id="@+id/input_assistance_note"
-                 android:layout_width="match_parent"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="50dp"
                 android:background="@drawable/rounded_input_background"
-                android:hint="Other details..."
+                android:hint="Any other assistance needed..."
                 android:layout_marginTop="8dp"
                 android:padding="12dp"
                 android:layout_marginBottom="20dp"/>
         </LinearLayout>
-
-        <!-- DYNAMIC SECTION: NORMAL TRANSPORT -->
-        <LinearLayout
-            android:id="@+id/group_normal_fields"
+        
+        <!-- COST ESTIMATION -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Preferred Time"
-                android:textColor="#555555"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
-
-            <EditText
-                android:id="@+id/input_time"
+            app:cardCornerRadius="8dp"
+            app:cardBackgroundColor="#E3F2FD"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="24dp">
+            
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@drawable/rounded_input_background"
-                android:hint="e.g. Immediately or 5:00 PM"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_marginBottom="20dp"/>
-        </LinearLayout>
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Estimated Fuel Compensation"
+                    android:textStyle="bold"
+                    android:textColor="#0277BD"/>
+                
+                <TextView
+                    android:id="@+id/text_cost_estimate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="₹0.00"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="#01579B"
+                    android:layout_marginTop="4dp"/>
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Paid directly to volunteer for fuel costs."
+                    android:textSize="12sp"
+                    android:textColor="#555555"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <Button
-            android:id="@+id/btn_submit_transport"
+            android:id="@+id/btn_find_volunteer"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:text="CONFIRM REQUEST"
+            android:text="FIND VOLUNTEER"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="#FFFFFF"
-            android:backgroundTint="#0288D1"
-            android:layout_marginTop="20dp"/>
+            android:backgroundTint="#0288D1"/>
 
     </LinearLayout>
 </ScrollView>
