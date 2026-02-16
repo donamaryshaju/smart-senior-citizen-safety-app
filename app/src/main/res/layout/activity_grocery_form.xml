@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#FAFAFA">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- HEADER -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
+
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back_24dp"
+                app:tint="#333333" />
+
+            <TextView
+                android:id="@+id/text_form_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Grocery Request"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#2E7D32"
+                android:layout_marginStart="16dp"/>
+        </LinearLayout>
+
+
+        <!-- DETAILS INPUT -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Items Needed (List)"
+            android:textColor="#555555"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/input_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+             android:minHeight="150dp"
+            android:background="@drawable/rounded_input_background"
+            android:hint="e.g.\n1. Milk - 1 Packet\n2. Rice - 5 Kg\n3. Bread"
+            android:gravity="top|start"
+            android:padding="16dp"
+            android:layout_marginBottom="20dp"/>
+            
+        <!-- PREFERRED SHOP -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Preferred Shop (Optional)"
+            android:textColor="#555555"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/input_shop"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/rounded_input_background"
+            android:hint="Shop Name / Address"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:layout_marginBottom="20dp"/>
+
+
+        <Button
+            android:id="@+id/btn_submit_grocery"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="SUBMIT REQUEST"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#2E7D32"
+            android:layout_marginTop="10dp"/>
+
+    </LinearLayout>
+</ScrollView>

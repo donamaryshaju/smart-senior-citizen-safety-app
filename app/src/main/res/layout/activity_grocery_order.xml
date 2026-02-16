@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/screen_bg"
+    android:fillViewport="true"
+    tools:context=".activity.GroceryOrderActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="32dp">
+
+        <!-- COMMON HEADER -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:background="@color/white">
+
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_arrow_back_24dp"
+                app:tint="@color/black"
+                android:contentDescription="Back"
+                android:layout_centerVertical="true"/>
+
+            <TextView
+                android:id="@+id/tvHeaderTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Order Groceries"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_centerInParent="true"/>
+        </RelativeLayout>
+
+        <!-- STEP 1 CONTAINER -->
+        <LinearLayout
+            android:id="@+id/layoutStep1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:visibility="visible">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/header_order_method"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- CARD 1: UPLOAD LIST -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardUpload"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/card_bg"
+                android:layout_marginBottom="16dp"
+                android:foreground="?android:attr/selectableItemBackground">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/iconCamera"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_camera_alt"
+                        app:tint="#2E7D32"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="16dp"/>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_toEndOf="@id/iconCamera"
+                        android:layout_centerVertical="true">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Upload List Photo"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Take photo of handwritten list"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="4dp"/>
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/badge_recommended"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/green_success"
+                            android:layout_marginTop="4dp"
+                            android:background="@drawable/circle_green_bg"
+                            android:backgroundTint="#E8F5E9"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"/>
+                    </LinearLayout>
+                </RelativeLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- CARD 2: TYPE ITEMS -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/card_bg"
+                android:layout_marginBottom="16dp"
+                android:foreground="?android:attr/selectableItemBackground">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_edit"
+                        app:tint="#FB8C00"
+                        android:layout_marginEnd="16dp"/>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Type Item List"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Type items manually"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- CARD 3: REPEAT ORDER -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardRepeat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/card_bg"
+                android:layout_marginBottom="24dp"
+                android:foreground="?android:attr/selectableItemBackground">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/iconRepeat"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_repeat"
+                        app:tint="#9C27B0"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="16dp"/>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_toEndOf="@id/iconRepeat"
+                        android:layout_centerVertical="true">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/title_repeat_order"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Clone previous grocery order"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/action_view_list"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#2E7D32"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"/>
+                </RelativeLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- CONTINUE BUTTON (Step 1) -->
+             <Button
+                android:id="@+id/btnContinue"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="CONTINUE"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:backgroundTint="#2E7D32"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+
+        <!-- STEP 2 CONTAINER -->
+        <LinearLayout
+            android:id="@+id/layoutStep2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:visibility="gone">
+
+             <!-- SECTION 1: SELECTED METHOD SUMMARY -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/light_blue_bg"
+                android:layout_marginBottom="24dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+                    
+                    <ImageView
+                         android:id="@+id/imgSelectedMethodIcon"
+                         android:layout_width="24dp"
+                         android:layout_height="24dp"
+                         android:src="@drawable/ic_check_circle_green"
+                         app:tint="#2E7D32"
+                         android:layout_centerVertical="true"/>
+
+                    <TextView
+                        android:id="@+id/tvSelectedMethodText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Upload List Selected"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_primary"
+                        android:layout_toEndOf="@id/imgSelectedMethodIcon"
+                        android:layout_marginStart="12dp"
+                        android:layout_centerVertical="true"/>
+
+                    <TextView
+                        android:id="@+id/btnChangeMethod"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Change Method"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#2E7D32"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:padding="4dp"/>
+                </RelativeLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- SECTION 2: DYNAMIC INPUT AREA -->
+            <FrameLayout
+                android:id="@+id/layoutInputArea"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="100dp"
+                android:layout_marginBottom="24dp">
+                
+                <!-- Camera Input View -->
+                <LinearLayout
+                    android:id="@+id/layoutInputCamera"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:visibility="gone">
+                    
+                    <ImageView
+                        android:id="@+id/imgPreview"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_gallery"
+                        android:layout_marginBottom="12dp"/>
+                        
+                    <Button
+                        android:id="@+id/btnRetakePhoto"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                    android:text="Retake / Select Photo"
+                        android:textColor="@color/white"
+                        android:backgroundTint="#2E7D32"/>
+                </LinearLayout>
+
+                <!-- TYPE LIST INPUT -->
+                <LinearLayout
+                    android:id="@+id/layoutInputText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Type your grocery items below:"
+                        android:textColor="#424242"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp"/>
+
+                    <EditText
+                        android:id="@+id/etMedicineList"
+                        android:layout_width="match_parent"
+                        android:layout_height="150dp"
+                        android:background="@drawable/bg_outline_input"
+                        android:gravity="top|start"
+                        android:hint="e.g. \n1. Rice 5kg\n2. Sunflower Oil 1L\n3. Sugar 2kg"
+                        android:padding="12dp"
+                        android:inputType="textMultiLine"
+                        android:scrollbars="vertical"
+                        android:textColor="#212121"
+                        android:textSize="16sp" />
+                </LinearLayout>
+
+                <!-- REPEAT ORDER INPUT -->
+                <LinearLayout
+                    android:id="@+id/layoutInputRepeat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+                    
+                    <!-- Will be dynamically populated or just show success msg -->
+                     <TextView
+                        android:id="@+id/tvRepeatInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Last Order Items Loaded."
+                        android:textColor="#424242"
+                        android:textSize="16sp"/>
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+            <!-- SECTION 3: DELIVERY ADDRESS -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:baselineAligned="false"
+                android:layout_marginBottom="24dp"
+                android:background="#F0F0F0"
+                android:padding="16dp">
+                
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_location_on"
+                    app:tint="@color/text_secondary"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginEnd="12dp"/>
+                
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_delivery_address"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"/>
+                    
+                    <TextView
+                        android:id="@+id/tvDeliveryAddress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Loading address..."
+                        android:textSize="15sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="4dp"/>
+                </LinearLayout>
+                
+                <TextView
+                    android:id="@+id/btnChangeAddress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/action_change"
+                    android:textColor="#2E7D32"
+                    android:textStyle="bold"
+                    android:textSize="14sp"
+                    android:padding="8dp"/>
+            </LinearLayout>
+
+            <!-- SECTION 4: DELIVERY TIME -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+                
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_clock"
+                    app:tint="@color/text_secondary"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginEnd="12dp"/>
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_delivery_time"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"/>
+            </LinearLayout>
+
+            <RadioGroup
+                android:id="@+id/radioGroupTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp">
+
+                <RadioButton
+                    android:id="@+id/radioUrgent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/option_urgent"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_primary"
+                    android:paddingStart="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:minHeight="48dp"
+                    android:background="?android:attr/selectableItemBackground"/>
+
+                <RadioButton
+                    android:id="@+id/radioToday"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/option_today_evening"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_primary"
+                    android:paddingStart="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:minHeight="48dp"
+                    android:background="?android:attr/selectableItemBackground"/>
+
+                <RadioButton
+                    android:id="@+id/radioTomorrow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/option_tomorrow_morning"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_primary"
+                    android:paddingStart="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:minHeight="48dp"
+                    android:background="?android:attr/selectableItemBackground"/>
+            </RadioGroup>
+
+            <!-- SUBMIT BUTTON -->
+            <Button
+                android:id="@+id/btnSubmit"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="@string/btn_submit_request"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:backgroundTint="#2E7D32"
+                android:layout_marginTop="32dp"
+                android:enabled="false"/>
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

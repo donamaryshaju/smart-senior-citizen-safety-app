@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        tools:context=".activity.PrescriptionActivity">
+
+        <!-- HEADER -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingBottom="8dp"
+            android:layout_marginBottom="24dp">
+
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back_24dp"
+                app:tint="#212121"
+                android:contentDescription="Go Back"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Buy Medicines"
+                android:textColor="#212121"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginEnd="56dp"/> 
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="How do you want to order?"
+            android:textColor="#424242"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- CARD 1: UPLOAD PRESCRIPTION -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_upload"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="80dp"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_camera_blue" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Upload Prescription"
+                            android:textColor="#212121"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Take photo or select image"
+                            android:textColor="#616161"
+                            android:layout_marginTop="4dp"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- EXPANDABLE: Camera/Gallery Buttons -->
+                <LinearLayout
+                    android:id="@+id/layout_expandable_upload"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:layout_marginTop="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btn_camera"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="64dp"
+                            android:layout_weight="1"
+                            android:text="Camera"
+                            android:textSize="16sp"
+                            app:icon="@drawable/ic_camera_blue"
+                            android:layout_marginEnd="8dp"/>
+
+                        <Button
+                            android:id="@+id/btn_gallery"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="64dp"
+                            android:layout_weight="1"
+                            android:text="Gallery"
+                            android:textSize="16sp"
+                            app:icon="@drawable/ic_gallery"
+                            android:layout_marginStart="8dp"/>
+                    </LinearLayout>
+                    
+                    <!-- Image Preview -->
+                    <RelativeLayout
+                        android:id="@+id/layout_image_preview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        android:layout_marginTop="12dp">
+                        
+                        <ImageView
+                            android:id="@+id/img_preview"
+                            android:layout_width="match_parent"
+                            android:layout_height="220dp"
+                            android:scaleType="centerCrop"
+                            android:background="#EEEEEE"/>
+                            
+                        <ImageButton
+                            android:id="@+id/btn_remove_image"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@android:drawable/ic_delete"
+                            android:background="#FFF"
+                            android:layout_alignParentEnd="true"
+                            android:layout_margin="8dp"
+                            app:tint="#F44336"/>
+                            
+                        <TextView
+                            android:id="@+id/txt_image_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="selected_image.jpg"
+                            android:textSize="16sp"
+                            android:layout_below="@id/img_preview"
+                            android:layout_marginTop="8dp"/>
+                    </RelativeLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- CARD 2: VOICE LIST -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_voice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="80dp"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_mic_green" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Voice List"
+                            android:textColor="#212121"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Speak medicine names"
+                            android:textColor="#616161"
+                            android:layout_marginTop="4dp"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- EXPANDABLE: Voice Record -->
+                <LinearLayout
+                    android:id="@+id/layout_expandable_voice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:layout_marginTop="16dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_record"
+                        android:layout_width="wrap_content"
+                        android:layout_height="64dp"
+                        android:text="🎤 Start Recording"
+                        android:textSize="18sp"
+                        android:backgroundTint="#4CAF50"
+                        app:cornerRadius="32dp"
+                        android:paddingStart="32dp"
+                        android:paddingEnd="32dp"/>
+                        
+                    <TextView
+                        android:id="@+id/txt_transcription"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Listening..."
+                        android:textSize="18sp"
+                        android:gravity="center"
+                        android:visibility="gone"
+                        android:layout_marginTop="12dp"/>
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- CARD 3: TYPE MANUALLY -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_manual"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="80dp"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_edit_orange" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Type Manually"
+                            android:textColor="#212121"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="List medicines below"
+                            android:textColor="#616161"
+                            android:layout_marginTop="4dp"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+                    
+                    <ImageView
+                         android:id="@+id/img_check_manual"
+                         android:layout_width="32dp"
+                         android:layout_height="32dp"
+                         android:src="@drawable/ic_check_circle_green"
+                         android:visibility="gone"/>
+                    
+                    <TextView
+                        android:id="@+id/icon_expand_manual"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="▼"
+                        android:textSize="24sp"
+                        android:textColor="#616161"/>
+                </LinearLayout>
+
+                <!-- EXPANDABLE: MEDICINE LIST (Moved Inside) -->
+                <LinearLayout
+                    android:id="@+id/layout_expandable_manual"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:layout_marginTop="16dp">
+
+                     <LinearLayout
+                        android:id="@+id/layout_medicine_list_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <!-- Dynamic Rows will be added here -->
+                    </LinearLayout>
+            
+                    <Button
+                        android:id="@+id/btn_add_medicine"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="64dp"
+                        android:text="+ Add Medicine"
+                        android:textColor="#1976D2"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_gravity="end"
+                        android:layout_marginTop="8dp"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- CARD 4: REPEAT ORDER -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_repeat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="80dp"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_clipboard_purple" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Repeat Last Order"
+                        android:textColor="#212121"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Order same as Dec 25"
+                        android:textColor="#616161"
+                        android:layout_marginTop="4dp"
+                        android:textSize="16sp" />
+                </LinearLayout>
+                
+                <TextView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="View List →"
+                     android:textColor="#1976D2"
+                     android:textSize="16sp"
+                     android:textStyle="bold"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- DIVIDER -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#BDBDBD"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"/>
+
+
+        <!-- DIVIDER -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#BDBDBD"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- PREFERRED PHARMACY -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Preferred Pharmacy (Optional)"
+            android:textColor="#424242"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
+            
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                
+                <Spinner
+                    android:id="@+id/spinner_pharmacy"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"/>
+                    
+                <View
+                     android:layout_width="match_parent"
+                     android:layout_height="1dp"
+                     android:background="#EEEEEE"
+                     android:layout_marginTop="12dp"
+                     android:layout_marginBottom="12dp"/>
+                     
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp">
+                    
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Recent: Apollo Pharmacy"
+                        android:textSize="16sp"
+                        android:textColor="#616161"/>
+                        
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📍 Find Nearby"
+                        android:textColor="#1976D2"
+                        android:textSize="16sp"
+                        android:textStyle="bold"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+        
+        <!-- DELIVERY ADDRESS -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Delivery Address"
+            android:textColor="#424242"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="12dp"/>
+            
+        <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="horizontal"
+             android:gravity="center_vertical"
+             android:minHeight="56dp">
+             
+             <ImageView
+                 android:layout_width="32dp"
+                 android:layout_height="32dp"
+                 android:src="@drawable/ic_location_pin"
+                 app:tint="#424242"/>
+                 
+             <TextView
+                 android:id="@+id/txt_address"
+                 android:layout_width="0dp"
+                 android:layout_height="wrap_content"
+                 android:layout_weight="1"
+                 android:layout_marginStart="16dp"
+                 android:text="Loading address..."
+                 android:textColor="#212121"
+                 android:textSize="18sp"/>
+                 
+             <TextView
+                 android:layout_width="wrap_content"
+                 android:layout_height="48dp"
+                 android:gravity="center"
+                 android:text="Change"
+                 android:textColor="#1976D2"
+                 android:textStyle="bold"
+                 android:textSize="16sp"
+                 android:padding="8dp"/>
+        </LinearLayout>
+
+        <!-- TIME PREFERENCE -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Delivery Time Preference"
+            android:textColor="#424242"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"/>
+            
+        <RadioGroup
+            android:id="@+id/radio_group_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            
+            <RadioButton
+                android:id="@+id/radio_urgent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Urgent (within 2 hours)"
+                android:textSize="18sp"
+                android:minHeight="56dp"
+                android:paddingStart="12dp"/>
+                
+            <RadioButton
+                android:id="@+id/radio_evening"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Today Evening"
+                android:checked="true"
+                android:textSize="18sp"
+                android:minHeight="56dp"
+                android:paddingStart="12dp"/>
+                
+            <RadioButton
+                android:id="@+id/radio_morning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tomorrow Morning"
+                android:textSize="18sp"
+                android:minHeight="56dp"
+                android:paddingStart="12dp"/>
+        </RadioGroup>
+
+        <!-- SUBMIT BUTTON -->
+        <Button
+            android:id="@+id/btn_submit"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="SUBMIT REQUEST"
+            android:backgroundTint="#1976D2"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            app:cornerRadius="8dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="24dp"/>
+
+    </LinearLayout>
+</ScrollView>

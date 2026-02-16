@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#FFFFFF">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- HEADER SECTION (Dynamic Color) -->
+        <View
+            android:id="@+id/header_background"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:background="#E1F5FE"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/btn_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_arrow_back_24dp"
+            app:tint="#333333"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/text_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Back"
+            android:textColor="#333333"
+            android:textSize="16sp"
+            app:layout_constraintStart_toEndOf="@id/btn_back"
+            app:layout_constraintBottom_toBottomOf="@id/btn_back"
+            app:layout_constraintTop_toTopOf="@id/btn_back" />
+
+        <TextView
+            android:id="@+id/text_page_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Medical Assistance"
+            android:textColor="#01579B"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@id/btn_back"
+            app:layout_constraintTop_toBottomOf="@id/btn_back" />
+
+        <!-- ILLUSTRATION -->
+        <ImageView
+            android:id="@+id/image_illustration"
+            android:layout_width="200dp"
+            android:layout_height="180dp"
+            android:layout_marginTop="32dp"
+            android:src="@drawable/ic_medical" 
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_page_title" />
+            <!-- Note: src is placeholder, will be set dynamically or use existing -->
+
+        <!-- INPUT SECTION -->
+        <EditText
+            android:id="@+id/input_details"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginTop="40dp"
+            android:background="@drawable/rounded_input_background"
+            android:hint="Enter Medication Needed"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/image_illustration" />
+
+        <!-- FILE UPLOADER (Optional) -->
+        <LinearLayout
+            android:id="@+id/layout_file_upload"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp"
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="@id/input_details"
+            app:layout_constraintStart_toStartOf="@id/input_details"
+            app:layout_constraintTop_toBottomOf="@id/input_details">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="(Optional) Upload Prescription"
+                android:textColor="#757575"
+                android:textSize="14sp"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="#ECEFF1"
+                android:gravity="center_vertical"
+                android:paddingStart="4dp"
+                android:paddingEnd="16dp">
+
+                <Button
+                    android:id="@+id/btn_choose_file"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Choose File"
+                    android:textSize="12sp"
+                    android:backgroundTint="#FFFFFF"
+                    android:textColor="#333333"
+                    android:layout_margin="4dp"/>
+
+                <TextView
+                    android:id="@+id/text_file_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="No file chosen"
+                    android:textColor="#757575" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- SUBMIT BUTTON -->
+        <Button
+            android:id="@+id/btn_submit_request"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginBottom="40dp"
+            android:backgroundTint="#0288D1"
+            android:text="Submit Request"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:cornerRadius="30dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/input_details"
+            app:layout_constraintStart_toStartOf="@id/input_details"
+            app:layout_constraintTop_toBottomOf="@id/layout_file_upload"
+            app:layout_constraintVertical_bias="0.0" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

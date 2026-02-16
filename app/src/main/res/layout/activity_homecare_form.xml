@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#FAFAFA">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- HEADER -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
+
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back_24dp"
+                app:tint="#333333" />
+
+            <TextView
+                android:id="@+id/text_form_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Home Care Request"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#E65100"
+                android:layout_marginStart="16dp"/>
+        </LinearLayout>
+
+
+        <!-- DETAILS INPUT -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Service Details"
+            android:textColor="#555555"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/input_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+             android:minHeight="120dp"
+            android:background="@drawable/rounded_input_background"
+            android:hint="Describe specific needs (e.g. 3 rooms to clean, lunch preparation...)"
+            android:gravity="top|start"
+            android:padding="16dp"
+            android:layout_marginBottom="20dp"/>
+            
+        <!-- PREFERRED TIME -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Preferred Time"
+            android:textColor="#555555"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/input_time"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/rounded_input_background"
+            android:hint="e.g. Tomorrow 10 AM"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:layout_marginBottom="20dp"/>
+
+
+        <Button
+            android:id="@+id/btn_submit_homecare"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="SUBMIT REQUEST"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#E65100"
+            android:layout_marginTop="10dp"/>
+
+    </LinearLayout>
+</ScrollView>

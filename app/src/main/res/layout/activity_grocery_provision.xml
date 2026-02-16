@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#F5F5F5">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="24dp">
+
+        <!-- Header -->
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
+            app:elevation="4dp">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Monthly Provisions"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#2E7D32" />
+            </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Quick Actions -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Quick Actions"
+                android:textStyle="bold"
+                android:textColor="#555555"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:baselineAligned="false">
+
+                <!-- Repeat Last Order -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btn_repeat_order"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="2dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:layout_marginEnd="8dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_repeat"
+                            app:tint="#43A047"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Repeat Last\nOrder"
+                            android:gravity="center"
+                            android:textSize="12sp"
+                            android:layout_marginTop="4dp"
+                            android:textColor="#2E7D32"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Saved List -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btn_saved_list"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="2dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:layout_marginStart="8dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_list"
+                            app:tint="#43A047"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Use Saved\nList"
+                            android:gravity="center"
+                            android:textSize="12sp"
+                            android:layout_marginTop="4dp"
+                            android:textColor="#2E7D32"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Category: Staples -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Staples &amp; Grains"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Item: Rice -->
+            <include layout="@layout/item_grocery_counter"
+                android:id="@+id/layout_rice" />
+
+            <!-- Item: Wheat -->
+            <include layout="@layout/item_grocery_counter"
+                android:id="@+id/layout_wheat"
+                android:layout_marginTop="8dp"/>
+
+             <!-- Item: Dal -->
+            <include layout="@layout/item_grocery_counter"
+                android:id="@+id/layout_dal"
+                android:layout_marginTop="8dp"/>
+
+
+            <!-- Expandable Categories -->
+            <TextView
+                android:id="@+id/header_cooking"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Cooking Essentials ▼"
+                android:textSize="16sp"
+                android:textColor="#555555"
+                android:padding="12dp"
+                android:background="@drawable/rounded_border"
+                android:layout_marginTop="16dp"/>
+
+            <LinearLayout
+                android:id="@+id/layout_cooking_items"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp"
+                android:visibility="gone">
+                 <include layout="@layout/item_grocery_counter" android:id="@+id/layout_oil" />
+                 <include layout="@layout/item_grocery_counter" android:id="@+id/layout_salt" android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+
+            <!-- Additional Items -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Additional Items"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"/>
+
+            <EditText
+                android:id="@+id/input_additional_items"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:background="@drawable/rounded_input_background"
+                android:gravity="top|start"
+                android:hint="Type items here..."
+                android:padding="12dp" />
+
+
+
+
+            <!-- Delivery Details -->
+             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Delivery Details"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"/>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="8dp"
+                app:contentPadding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/text_delivery_address"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="🏠 Home Address"
+                        android:drawablePadding="8dp"
+                        android:textColor="#333333"/>
+                        
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginTop="12dp" android:layout_marginBottom="12dp"/>
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Delivery Time:"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp"/>
+                        
+                    <RadioGroup
+                        android:id="@+id/radio_group_delivery"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                        
+                        <RadioButton
+                            android:id="@+id/radio_2hrs"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Within 2 Hours (Express)"/>
+                        
+                         <RadioButton
+                             android:id="@+id/radio_today"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Today Evening (5-7 PM)"
+                            android:checked="true"/>
+                            
+                         <RadioButton
+                             android:id="@+id/radio_tomorrow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tomorrow Morning"/>
+                    </RadioGroup>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Submit Button -->
+            <Button
+                android:id="@+id/btn_submit_request"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="SUBMIT PROVISION REQUEST"
+                android:textSize="16sp"
+                android:padding="14dp"
+                app:cornerRadius="8dp"
+                android:backgroundTint="#2E7D32"/>
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

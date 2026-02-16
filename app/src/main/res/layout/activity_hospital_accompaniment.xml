@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back_24dp"
+                app:tint="#333" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Hospital Accompaniment"
+                android:textColor="#333"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Hospital Selection -->
+        <TextView
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:text="Which Hospital?"
+             android:textSize="16sp"
+             android:textStyle="bold"
+             android:textColor="#333"
+             android:layout_marginBottom="8dp"/>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@android:color/white"
+            android:layout_marginBottom="8dp">
+
+            <EditText
+                android:id="@+id/input_hospital_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:background="@null"
+                android:hint="Enter Hospital Name"/>
+        </androidx.cardview.widget.CardView>
+
+        <CheckBox
+            android:id="@+id/cb_nearest_hospital"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Take me to Nearest Hospital"
+            android:textColor="#1976D2"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Timing -->
+        <TextView
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:text="When do you need help?"
+             android:textSize="16sp"
+             android:textStyle="bold"
+             android:textColor="#333"
+             android:layout_marginBottom="8dp"/>
+        
+        <RadioGroup
+            android:id="@+id/rg_timing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <RadioButton
+                android:id="@+id/rb_immediate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="IMMEDIATE"
+                android:textColor="#D32F2F"
+                android:textStyle="bold"
+                android:layout_marginEnd="24dp"/>
+
+            <RadioButton
+                android:id="@+id/rb_schedule"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Schedule Later"/>
+        </RadioGroup>
+
+        <!-- Dynamic Date/Time for Schedule -->
+        <LinearLayout
+            android:id="@+id/layout_schedule_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp">
+
+            <Button
+                android:id="@+id/btn_select_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Select Date"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_marginBottom="8dp"/>
+
+             <Button
+                android:id="@+id/btn_select_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Select Time"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+        </LinearLayout>
+
+
+        <!-- Reason -->
+        <TextView
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:text="Reason for Visit"
+             android:textSize="16sp"
+             android:textStyle="bold"
+             android:textColor="#333"
+             android:layout_marginBottom="8dp"/>
+        
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@android:color/white"
+            android:layout_marginBottom="24dp">
+
+            <Spinner
+                android:id="@+id/spinner_reason"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:paddingStart="8dp"/>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Wheelchair -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="32dp">
+
+            <TextView
+                 android:layout_width="0dp"
+                 android:layout_height="wrap_content"
+                 android:layout_weight="1"
+                 android:text="Need Wheelchair Support?"
+                 android:textSize="16sp"
+                 android:textStyle="bold"
+                 android:textColor="#333"/>
+
+            <Switch
+                android:id="@+id/switch_wheelchair"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <!-- Submit -->
+        <Button
+            android:id="@+id/btn_request_assistance"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="REQUEST ASSISTANCE"
+            android:backgroundTint="#1976D2"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            app:cornerRadius="30dp"/>
+
+    </LinearLayout>
+</ScrollView>

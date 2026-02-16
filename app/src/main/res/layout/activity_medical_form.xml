@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#FAFAFA">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- HEADER -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
+
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back_24dp"
+                app:tint="#333333" />
+
+            <TextView
+                android:id="@+id/text_form_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Medical Request"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#01579B"
+                android:layout_marginStart="16dp"/>
+        </LinearLayout>
+
+        <!-- EMERGENCY BANNER (Dynamic) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/banner_emergency"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="8dp"
+            app:cardBackgroundColor="#FFEBEE"
+            android:visibility="gone">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_medical"
+                    app:tint="#D32F2F"/>
+                <TextView
+                     android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="This request will be marked as HIGH PRIORITY."
+                    android:textColor="#D32F2F"
+                    android:textStyle="bold"
+                    android:layout_marginStart="16dp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- DETAILS INPUT -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Description / Details"
+            android:textColor="#555555"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/input_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+             android:minHeight="120dp"
+            android:background="@drawable/rounded_input_background"
+            android:hint="Describe the medicines, doctor details, or emergency situation..."
+            android:gravity="top|start"
+            android:padding="16dp"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- PRESCRIPTION UPLOAD (Dynamic) -->
+        <LinearLayout
+            android:id="@+id/group_upload"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp"
+            android:visibility="gone">
+
+             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Prescription (Optional)"
+                android:textColor="#555555"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:id="@+id/btn_upload"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/rounded_input_background"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_menu_camera"
+                    app:tint="#0288D1"/>
+                <TextView
+                    android:id="@+id/text_upload_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tap to Upload Image"
+                    android:textColor="#0288D1"
+                    android:textStyle="bold"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+
+        <Button
+            android:id="@+id/btn_submit_medical"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="SUBMIT REQUEST"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#01579B"
+            android:layout_marginTop="10dp"/>
+
+    </LinearLayout>
+</ScrollView>
